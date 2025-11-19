@@ -94,6 +94,17 @@ class Profile(models.Model):
     is_connected = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            try:
+                old_profile = Profile.objects.get(pk=self.pk)
+                print(old_profile.photo != self.photo)
+                print(old_profile.photo)
+                if old_profile.photo and old_profile.photo != self.photo:
+                    old_profile.photo.delete(save=False)
+                if old_profile.recu and old_profile.recu != self.recu:
+                    old_profile.recu.delete(save=False)
+            except Profile.DoesNotExist:
+                pass
         self.matricule = self.user.username
         super().save(*args, **kwargs)
 
@@ -250,6 +261,16 @@ class Candidate(models.Model):
         # Générer automatiquement le name complet
         if not self.name and self.prenom and self.nom:
             self.name = f"{self.prenom} {self.nom}"
+        
+        if self.pk:
+            try:
+                old_candidate = Candidate.objects.get(pk=self.pk)
+                print(old_candidate.photo_url != self.photo_url)
+                print(old_candidate.photo_url)
+                if old_candidate.photo_url and old_candidate.photo_url != self.photo_url:
+                    old_candidate.photo_url.delete(save=False)
+            except Candidate.DoesNotExist:
+                pass
         super().save(*args, **kwargs)
 
     def __str__(self):
