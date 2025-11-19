@@ -1,1 +1,1 @@
-WEB: gunicon election_project.wsgi
+web: gunicorn election_project.wsgi
