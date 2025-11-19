@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -623,14 +625,14 @@
 
     <header>
         <div class="logo-container">
-            <img src="/static/vote_app/images/AESP.png" alt="Logo AESP" class="logo">
+            <img src="{% static 'vote_app/images/AESP.png' %}" alt="Logo AESP" class="logo">
         </div>
         <div class="container">
             <h1>Élections du Bureau de l'AESP</h1>
             <p>Association des Étudiants de South Polytech</p>
         </div>
         <div class="logo-container">
-            <img src="/static/vote_app/images/SP.png" alt="Logo SP" class="logo">
+            <img src="{% static 'vote_app/images/SP.png' %}" alt="Logo SP" class="logo">
         </div>
     </header>
 
