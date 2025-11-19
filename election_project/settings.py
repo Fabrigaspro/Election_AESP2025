@@ -8,9 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-!7ka%(r%&7a79d%qr&vs($+p$apkkkb!eujc)o&$v5l-xlqd^y')  # ⚠️ Utilisez variable env
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False  # ⚠️ Toujours False en production
+DEBUG = False  
 
-ALLOWED_HOSTS = ["127.0.0.1", "electionaesp2025iuget.up.railway.app", ".railway.app"]
+ALLOWED_HOSTS = ["127.0.0.1", "electionaesp2025iuget.up.railway.app"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -25,7 +25,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    #'whitenoise.middleware.WhiteNoiseMiddleware',  # ⚠️ Doit être après SecurityMiddleware
+    #'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -36,16 +36,15 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'election_project.urls'
 
-# ⚠️ CORRECTION CRITIQUE - Section TEMPLATES
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Important pour les templates globaux
+        'DIRS': [BASE_DIR / 'templates'],  
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',  # Essentiel pour l'admin
+                'django.template.context_processors.request',  
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
