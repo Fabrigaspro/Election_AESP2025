@@ -11,6 +11,7 @@ db.sqlite3
 venv/
 env/
 .venv/
+static/
 
 # Fichiers liés à l'IDE (ex: VSCode, PyCharm)
 .vscode/
