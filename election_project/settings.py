@@ -18,13 +18,20 @@ if ENVIRONMENT == "development":
 else:
     DEBUG = False  
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'electionaesp2025iuget.up.railway.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'electionaesp2025iuget.up.railway.app', '.railway.app', ]
 
 # ⚠️ Pour Railway - Configuration de sécurité
 CSRF_TRUSTED_ORIGINS = [
     'https://electionaesp2025iuget.up.railway.app',
     'https://*.railway.app',
 ]
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_USE_SESSIONS = False
+
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,8 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'cloudinary_storage', 
+    'django.contrib.staticfiles',
     'cloudinary',
     'vote_app',
 ]
@@ -67,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-#WSGI_APPLICATION = 'election_project.wsgi.application'
+WSGI_APPLICATION = 'election_project.wsgi.application'
 
 # Database
 DATABASES = {
@@ -126,3 +133,6 @@ else:
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

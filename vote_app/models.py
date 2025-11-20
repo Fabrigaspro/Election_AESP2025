@@ -84,8 +84,10 @@ class Profile(models.Model):
     cycle = models.CharField(max_length=100, choices=CYCLE_CHOICES, default='bts')
     specialite = models.CharField(max_length=100, blank=True, null=True)
     niveau = models.CharField(max_length=50, blank=True, null=True)
-    photo = models.ImageField(upload_to='photos/', blank=True, null=True)
-    recu = models.ImageField(upload_to='recus/', blank=True, null=True)
+    photo = models.ImageField(upload_to='photos/', blank=True, null=True,max_length=500,
+        help_text="Format recommandé: 300x300px, max 2MB")
+    recu = models.ImageField(upload_to='recus/', blank=True, null=True,max_length=500,
+        help_text="Format recommandé: 300x300px, max 2MB")
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -251,7 +253,8 @@ class Candidate(models.Model):
     
     # Campagne
     slogan = models.TextField()
-    photo_url = models.ImageField(upload_to='candidats/', blank=True, null=True)
+    photo_url = models.ImageField(upload_to='candidats/', blank=True, null=True,max_length=500,
+        help_text="Format recommandé: 300x300px, max 2MB")
     
     # Statistiques
     votes = models.IntegerField(default=0)

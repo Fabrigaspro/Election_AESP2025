@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Profile, Candidate, ElectionState, Vote
+from django.utils.html import format_html
 
 # Personnalisation basique de l'interface
 admin.site.site_header = "Administration AESP - Système de Vote"
@@ -21,6 +22,19 @@ class CustomUserAdmin(admin.ModelAdmin):
 class CandidateAdmin(admin.ModelAdmin):
     list_display = ('nom', 'prenom', 'cycle', 'specialite', 'niveau', 'votes', 'photo_url' )
     search_fields = ('nom', 'specialite')
+
+    def photo_preview(self, obj):
+        if obj.photo:
+            return format_html('<img src="{}" style="width: 100px; height: 100px; object-fit: cover;" />', obj.photo.url)
+        return "Aucune photo"
+    
+    photo_preview.short_description = "Aperçu de la photo"
+    
+    # Configuration pour les uploads
+    class Media:
+        css = {
+            'all': ('admin/css/custom.css',)
+        }
 
 @admin.register(ElectionState)
 class ElectionAdmin(admin.ModelAdmin):
