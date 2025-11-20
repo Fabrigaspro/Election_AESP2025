@@ -117,6 +117,7 @@ if ENVIRONMENT == 'production':
         'API_KEY': env('CLOUDINARY_API_KEY', default=''),
         'API_SECRET': env('CLOUDINARY_API_SECRET', default=''),
     }
+    MEDIA_URL = '/media/' 
 else:
     # En développement, utilisez les fichiers locaux
     MEDIA_URL = '/media/'
