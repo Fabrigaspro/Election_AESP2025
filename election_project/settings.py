@@ -132,21 +132,34 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Configuration Cloudinary (en production uniquement)
+#
+# Configuration Cloudinary
 if ENVIRONMENT == 'production':
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME', default=''),
-        'API_KEY': env('CLOUDINARY_API_KEY', default=''),
-        'API_SECRET': env('CLOUDINARY_API_SECRET', default=''),
-    }
-    CLOUDINARY = {
-        'cloud_name': env('CLOUDINARY_CLOUD_NAME'),
-        'api_key': env('CLOUDINARY_API_KEY'),
-        'api_secret': env('CLOUDINARY_API_SECRET'),
-        'secure': True
-    }
-    MEDIA_URL = '/media/'
+    # Utilise CLOUDINARY_URL si disponible
+    CLOUDINARY_URL = env('CLOUDINARY_URL', default=None)
+    
+    if CLOUDINARY_URL:
+        # Cloudinary peut lire directement CLOUDINARY_URL
+        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+        
+        # Configuration pour la librairie cloudinary
+        import cloudinary
+        cloudinary.config(
+            cloud_name=env('CLOUDINARY_CLOUD_NAME', default=''),  
+            api_key=env('CLOUDINARY_API_KEY', default=''),
+            api_secret=env('CLOUDINARY_API_SECRET', default=''),
+            secure=True
+        )
+        
+        print("✅ Configuration Cloudinary avec CLOUDINARY_URL")
+    else:
+        # Fallback vers l'ancienne configuration
+        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME', default=''),
+            'API_KEY': env('CLOUDINARY_API_KEY', default=''),
+            'API_SECRET': env('CLOUDINARY_API_SECRET', default=''),
+        }
 else:
     # En développement, utilisez les fichiers locaux
     MEDIA_URL = '/media/'
