@@ -32,10 +32,14 @@ CSRF_COOKIE_HTTPONLY = False  # Doit être False pour que JavaScript puisse lire
 CSRF_USE_SESSIONS = False
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
+CSRF_COOKIE_DOMAIN = '.railway.app'  # Pour tous les sous-domaines Railway
+CSRF_COOKIE_SAMESITE = 'Lax'  # 'None' peut causer des problèmes
+
 # Configuration session
 SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'None'  # Important pour les iframes et cross-origin
+SESSION_COOKIE_SAMESITE = 'Lax'  # None Important pour les iframes et cross-origin
 SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 1209600
 
 # Configuration sécurité
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -50,8 +54,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage', 
     'django.contrib.staticfiles',
+    'cloudinary_storage', 
     'cloudinary',
     'vote_app',
 ]
@@ -136,7 +140,13 @@ if ENVIRONMENT == 'production':
         'API_KEY': env('CLOUDINARY_API_KEY', default=''),
         'API_SECRET': env('CLOUDINARY_API_SECRET', default=''),
     }
-    MEDIA_URL = '/media/' 
+    CLOUDINARY = {
+        'cloud_name': env('CLOUDINARY_CLOUD_NAME'),
+        'api_key': env('CLOUDINARY_API_KEY'),
+        'api_secret': env('CLOUDINARY_API_SECRET'),
+        'secure': True
+    }
+    MEDIA_URL = '/media/'
 else:
     # En développement, utilisez les fichiers locaux
     MEDIA_URL = '/media/'
