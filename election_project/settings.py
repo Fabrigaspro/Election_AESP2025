@@ -18,8 +18,13 @@ if ENVIRONMENT == "development":
 else:
     DEBUG = False  
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'electionaesp2025iuget.up.railway.app']
 
+# ⚠️ Pour Railway - Configuration de sécurité
+CSRF_TRUSTED_ORIGINS = [
+    'https://electionaesp2025iuget.up.railway.app',
+    'https://*.railway.app',
+]
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -109,8 +114,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ⚠️ Pour Railway - Configuration de sécurité
-CSRF_TRUSTED_ORIGINS = [
-    'https://electionaesp2025iuget.up.railway.app',
-    'https://*.railway.app',
-]
