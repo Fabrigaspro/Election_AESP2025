@@ -27,39 +27,39 @@ class Profile(models.Model):
 
     # Spécialités par cycle
     SPECIALITE_BTS = [
-        ('iia', 'Informatique Industriele et Automatisme'),
-        ('et', 'ElectroTechnique'),
-        ('res', 'Réseau et sécurité'),
-        ('gl', 'Génie Logiciel'),
+        ('IIA', 'Informatique Industriele et Automatisme'),
+        ('ET', 'ElectroTechnique'),
+        ('RES', 'Réseau et sécurité'),
+        ('GL', 'Génie Logiciel'),
     ]
 
     SPECIALITE_LICENCE = [
-        ('iia', 'Informatique Industriele et Automatisme'),
-        ('et', 'ElectroTechnique'),
-        ('res', 'Réseau et sécurité'),
-        ('gl', 'Génie Logiciel'),
+        ('IIA', 'Informatique Industriele et Automatisme'),
+        ('ET', 'ElectroTechnique'),
+        ('RES', 'Réseau et sécurité'),
+        ('GL', 'Génie Logiciel'),
     ]
 
     SPECIALITE_MASTER = [
-        ('iia', 'Informatique Industriele et Automatisme'),
-        ('et', 'ElectroTechnique'),
-        ('res', 'Réseau et sécurité'),
-        ('gl', 'Génie Logiciel'),
+        ('IIA', 'Informatique Industriele et Automatisme'),
+        ('ET', 'ElectroTechnique'),
+        ('RES', 'Réseau et sécurité'),
+        ('GL', 'Génie Logiciel'),
     ]
 
     SPECIALITE_INGENIEUR = [
-        ('prepa', 'Classe Preparatoire'),
-        ('gce', 'Génie Civil'),
-        ('gesi', 'Génie Électrique et Systèmes Intélligents'),
-        ('gm', 'Génie Mécanique'),
-        ('gma', 'Génie Mécatronique et Antomobile'),
-        ('git', 'Génie Informatique et Télécommunication'),
-        ('qhse', 'Qualité Higiène Sécurité Environnement'),
+        ('Prepa', 'Classe Preparatoire'),
+        ('GCE', 'Génie Civil'),
+        ('GESI', 'Génie Électrique et Systèmes Intélligents'),
+        ('GM', 'Génie Mécanique'),
+        ('GMA', 'Génie Mécatronique et Antomobile'),
+        ('GIT', 'Génie Informatique et Télécommunication'),
+        ('QHSE', 'Qualité Higiène Sécurité Environnement'),
     ]
     # Niveaux par cycle
     NIVEAUX_BTS = [
-        ('bts1', '1ère année'),
-        ('bts2', '2ème année'),
+        ('BTS1', '1ère année'),
+        ('BTS2', '2ème année'),
     ]
 
     NIVEAUX_LICENCE = [

@@ -1247,7 +1247,7 @@
                     showView('studentPendingView');
                 } else if (state.currentUser.status === 'validated') {
                     if (state.currentUser.has_voted) {
-                        studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !,`;
+                        studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
                         showView('studentVotedView');
                     } else {
                         showView('studentVoteView');
@@ -1266,9 +1266,13 @@
             candidatesForVote.innerHTML = '';
             selectedCandidateId = null;
             selectedCandidateInfo.style.display = 'none';
-            
-            if (state.electionStatus !== 'active') {
+            console.log(state.electionStatus)
+            if (state.electionStatus == 'pending') {
                 electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection n\'est pas encore ouverte.</div>';
+                return;
+            }
+            if (state.electionStatus == 'closed') {
+                electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection est terminée !</div>';
                 return;
             }
             
@@ -1400,37 +1404,38 @@
             }
 
             state.pendingUsers.forEach(user => {
-        const userDiv = document.createElement('div');
-        userDiv.className = 'list-item';
-        userDiv.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
-                <a href="${user.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
-                    <img src="${user.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
-                     alt="Photo de ${user.prenom} ${user.nom}"
-                     style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
-                </a>
-                <div>
-                    <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                    <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
-                    <a href="${user.recu_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
-                        <i class="fas fa-file-invoice"></i> Voir le reçu
+                const userDiv = document.createElement('div');
+                userDiv.className = 'list-item';
+                userDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+                    <a href="${user.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                        <img src="${user.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
+                         alt="Photo de ${user.prenom} ${user.nom}"
+                         style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
                     </a>
+                    <div>
+                        <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
+                        <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
+                        <a href="${user.recu_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                            <i class="fas fa-file-invoice"></i> Voir le reçu
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-success" data-user-id="${user.id}">
-                    <i class="fas fa-check"></i> Valider
-                </button>
-                <button class="btn btn-danger" data-user-id="${user.id}">
-                    <i class="fas fa-times"></i> Supprimer
-                </button>
-            </div>
-        `;
-        pendingUsersList.appendChild(userDiv);
-});
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-success" data-user-id="${user.id}">
+                        <i class="fas fa-check"></i> Valider
+                    </button>
+                    <button class="btn btn-danger" data-user-id="${user.id}">
+                        <i class="fas fa-times"></i> Supprimer
+                    </button>
+                </div>
+            `;
+                pendingUsersList.appendChild(userDiv);
+            });
         }
 
         pendingUsersList.addEventListener('click', async (e) => {
+            console.log("appuyé !!!!")
             if (e.target.tagName !== 'BUTTON') return;
             const userId = e.target.dataset.userId;
             if (!userId) return;
@@ -1451,7 +1456,30 @@
                 alert(`Erreur : ${error.message}`);
             }
         });
+        usersList.addEventListener('click', async (e) => {
+            if (e.target.tagName !== 'BUTTON') return;
+            const userId = e.target.dataset.userId;
+            if (!userId) return;
 
+            try {
+                if (e.target.classList.contains('btn-danger')) {
+                    if (confirm("Êtes-vous sûr de vouloir desactiver cet étudiant ?")) {
+                        await apiFetch(`/api/users/${userId}/`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ status: 'pending' })
+                        });
+                    }
+                } else if (e.target.classList.contains('btn-danger')) {
+                    if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+                        await apiFetch(`/api/users/${userId}/`, { method: 'DELETE' });
+                    }
+                }
+                await checkSession();
+            } catch (error) {
+                alert(`Erreur : ${error.message}`);
+            }
+        });
+        
         // Formulaire d'ajout de candidat amélioré
         // fonctions pour gérer les dépendances entre cycle et specialité niveau
         async function updateSpecialitesCandidatesByCycle(cycle) {
@@ -1592,7 +1620,7 @@
              }
         });
 
-        // Dans la fonction renderElectionStatus()
+        // 
         function renderElectionStatus() {
             const statusText = { 
                 pending: "🟡 En attente", 
@@ -1759,17 +1787,44 @@
                 usersList.innerHTML = '<p>Aucun utilisateur enregistré.</p>';
                 return;
             }
-
+            // Afficher le nombre total d'inscrits
+            const countDiv = document.createElement('div');
+            countDiv.className = 'list-item';
+            countDiv.innerHTML = `
+                <div><h4>Total des inscrits : ${state.allUsers.length-state.pendingUsers.length}</h4></div>
+                <div><h4>Total en attente : ${state.pendingUsers.length}</h4></div>
+            `;
+            usersList.appendChild(countDiv);
+            
+            // Afficher la liste des Eudiants
             state.allUsers.forEach(user => {
                 const userDiv = document.createElement('div');
                 userDiv.className = 'list-item';
                 userDiv.innerHTML = `
-                    <div>
-                        <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                        <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validé'}</span>
-                        ${user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
+                    <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+                        <a href="${user.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                            <img src="${user.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
+                             alt="Photo de ${user.prenom} ${user.nom}"
+                             style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
+                        </a>
+                        <div>
+                            <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
+                            <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
+                            <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validé'}</span>
+                            ${user.status === 'pending' ? ' - ❌ Ne pas voter': user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
+                        </div>
                     </div>
+                    
                 `;
+                console.log(user.status)
+                console.log(user.status === 'validated')
+                if(user.status === 'validated' ){
+                    userDiv.innerHTML += `
+                        <button class="btn btn-danger" data-user-id="${user.id}">
+                            <i class="fas fa-times"></i> Desactiver
+                        </button>
+                    `;
+                }
                 usersList.appendChild(userDiv);
             });
         }

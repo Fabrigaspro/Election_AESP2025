@@ -105,7 +105,6 @@ def user_to_dict(user):
 @csrf_exempt # Pour la simplicité, en production, utilisez une gestion CSRF appropriée
 def register_view(request):
     if request.method == 'POST':
-        # Les données du formulaire sont dans request.POST, les fichiers dans request.FILES
         data = request.POST
         print("###################################################################")
         print("#######################  data['matricule'] ###########################")
@@ -181,16 +180,6 @@ def dashboard_data_view(request):
             specialite=candidate['specialite'],
             niveau=candidate['niveau']
         )
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        print(temp_candidate.cycle)
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        print(temp_candidate.get_cycle_display())
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        print(temp_candidate.specialite)
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        print(temp_candidate.specialite_display)
-        print("__________________________________________________________________________________________")
-
         candidate['cycle_display'] = temp_candidate.get_cycle_display()
         candidate['specialite_display'] = temp_candidate.specialite_display
         candidate['niveau_display'] = temp_candidate.niveau_display
@@ -249,10 +238,9 @@ def vote_view(request):
             return JsonResponse({'error': 'Candidat non trouvé.'}, status=404)
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
-# Dans views.py
 @csrf_exempt
 @login_required
-def reset_election_view(request):
+def reset_election_view(request): # Redémarrage de l'élection
     if not is_user_admin(request.user):
         return JsonResponse({'error': 'Accès refusé.'}, status=403)
     
@@ -275,10 +263,10 @@ def reset_election_view(request):
             return JsonResponse({'error': f'Erreur lors de la réinitialisation: {str(e)}'}, status=500)
     
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+
 # ===============================================
 # VUES API - ADMINISTRATION
 # ===============================================
-
 @csrf_exempt
 @login_required
 def manage_user_status_view(request, user_id):
@@ -302,10 +290,10 @@ def manage_user_status_view(request, user_id):
     
     if request.method == 'DELETE': # Supprimer
         user_to_manage.delete()
+        profile_to_manage.delete()
         return JsonResponse({'success': 'Utilisateur supprimé.'})
     
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
-
 
 @login_required
 def manage_candidates_view(request):
@@ -325,7 +313,7 @@ def manage_candidates_view(request):
                 niveau = request.POST.get('niveau')
                 slogan = request.POST.get('slogan')
                 photo = request.FILES.get('photo')
-                
+
                 # Valider les données obligatoires
                 if not all([nom, prenom, cycle, specialite, niveau, slogan]):
                     return JsonResponse({'error': 'Tous les champs sont obligatoires.'}, status=400)
@@ -394,7 +382,6 @@ def manage_candidate_detail_view(request, candidate_id):
         return JsonResponse({'success': 'Candidat supprimé.'})
 
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
-
 
 @csrf_exempt
 @login_required
