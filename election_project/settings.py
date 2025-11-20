@@ -52,7 +52,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'election_project.wsgi.application'
+#WSGI_APPLICATION = 'election_project.wsgi.application'
 
 # Database
 DATABASES = {
