@@ -142,7 +142,7 @@ def login_view(request):
         user = authenticate(request, username=data['matricule'], password=data['password'])
         print(user)
         profileUser = Profile.objects.get(user=user)
-        if profileUser.is_connected:
+        if profileUser.is_connected and not profileUser.is_admin:
             return JsonResponse({'error': 'Une autre session est déjà ouverte sur ce compte.'}, status=401)
         if user is not None:
             login(request, user)
@@ -171,18 +171,31 @@ def check_session_view(request):
 def dashboard_data_view(request):
     """Renvoie toutes les données nécessaires pour le tableau de bord."""
     election = ElectionState.load()
-    candidates = list(Candidate.objects.all().values('id', 'nom', 'prenom', 'cycle', 'specialite','niveau', 'slogan', 'votes', 'photo_url'))
-    # Convertir les codes en libellés pour chaque candidat
-    for candidate in candidates:
-        # Créer un objet temporaire pour appeler les méthodes
-        temp_candidate = Candidate(
-            cycle=candidate['cycle'],
-            specialite=candidate['specialite'],
-            niveau=candidate['niveau']
-        )
-        candidate['cycle_display'] = temp_candidate.get_cycle_display()
-        candidate['specialite_display'] = temp_candidate.specialite_display
-        candidate['niveau_display'] = temp_candidate.niveau_display
+    
+    # Récupérer les candidats sans .values() pour avoir les objets complets
+    candidates_queryset = Candidate.objects.all()
+    
+    # Sérialiser manuellement les candidats
+    candidates = []
+    for candidate in candidates_queryset:
+        candidate_data = {
+            'id': candidate.id,
+            'nom': candidate.nom,
+            'prenom': candidate.prenom,
+            'cycle': candidate.cycle,
+            'specialite': candidate.specialite,
+            'niveau': candidate.niveau,
+            'slogan': candidate.slogan,
+            'votes': candidate.votes,
+            'photo_url': candidate.photo_url.url if candidate.photo_url else None,  # Convertir Cloudinary en URL string
+        }
+        
+        # Ajouter les libellés
+        candidate_data['cycle_display'] = candidate.get_cycle_display()
+        candidate_data['specialite_display'] = candidate.specialite_display
+        candidate_data['niveau_display'] = candidate.niveau_display
+        
+        candidates.append(candidate_data)
 
     # Pour l'admin, on renvoie aussi les listes d'utilisateurs
     pending_users = []

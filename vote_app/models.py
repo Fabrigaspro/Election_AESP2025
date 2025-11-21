@@ -2,6 +2,8 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+from cloudinary.models import CloudinaryField
+from cloudinary.uploader import destroy
 
 # Modèle pour étendre le modèle User de base de Django avec nos champs personnalisés
 class Profile(models.Model):
@@ -84,10 +86,8 @@ class Profile(models.Model):
     cycle = models.CharField(max_length=100, choices=CYCLE_CHOICES, default='bts')
     specialite = models.CharField(max_length=100, blank=True, null=True)
     niveau = models.CharField(max_length=50, blank=True, null=True)
-    photo = models.ImageField(upload_to='photos/', blank=True, null=True,max_length=500,
-        help_text="Format recommandé: 300x300px, max 2MB")
-    recu = models.ImageField(upload_to='recus/', blank=True, null=True,max_length=500,
-        help_text="Format recommandé: 300x300px, max 2MB")
+    photo = CloudinaryField('image', folder='photos/')
+    recu = CloudinaryField('image', folder='recus/')
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -101,14 +101,81 @@ class Profile(models.Model):
                 old_profile = Profile.objects.get(pk=self.pk)
                 print(old_profile.photo != self.photo)
                 print(old_profile.photo)
-                if old_profile.photo and old_profile.photo != self.photo:
-                    old_profile.photo.delete(save=False)
+                if old_profile.photo and old_profile.photo.url != self.photo.url:
+                    destroy(old_profile.photo.public_id)
+                    print(f"✅ Ancienne image de profile supprimée: {old_profile.photo.public_id}")
                 if old_profile.recu and old_profile.recu != self.recu:
-                    old_profile.recu.delete(save=False)
+                    destroy(old_profile.recu.public_id)
+                    print(f"✅ Ancienne image de recu supprimée: {old_profile.recu.public_id}")
             except Profile.DoesNotExist:
                 pass
         self.matricule = self.user.username
         super().save(*args, **kwargs)
+    
+    def save(self, *args, **kwargs):
+        """Sauvegarde le profil avec gestion sécurisée des images Cloudinary"""
+        
+        # Initialiser les variables pour suivre les changements
+        old_photo_public_id = None
+        old_recu_public_id = None
+        
+        # Si c'est une mise à jour (objet existant)
+        if self.pk:
+            try:
+                old_instance = Profile.objects.get(pk=self.pk)
+                
+                # Vérifier si la photo a changé
+                if (old_instance.photo and 
+                    self.photo and 
+                    hasattr(old_instance.photo, 'public_id') and
+                    hasattr(self.photo, 'public_id') and
+                    old_instance.photo.public_id != self.photo.public_id):
+                    old_photo_public_id = old_instance.photo.public_id
+                
+                # Vérifier si le reçu a changé 
+                if (hasattr(old_instance, 'recu') and old_instance.recu and 
+                    hasattr(self, 'recu') and self.recu and
+                    hasattr(old_instance.recu, 'public_id') and
+                    hasattr(self.recu, 'public_id') and
+                    old_instance.recu.public_id != self.recu.public_id):
+                    old_recu_public_id = old_instance.recu.public_id
+                    
+            except Profile.DoesNotExist:
+                pass
+        # Sauvegarder d'abord l'objet
+        super().save(*args, **kwargs)  
+        # Supprimer les anciennes images APRÈS la sauvegarde
+        try:
+            if old_photo_public_id:
+                destroy(old_photo_public_id)
+                print(f"✅ Ancienne photo supprimée: {old_photo_public_id}")
+                
+            if old_recu_public_id:
+                destroy(old_recu_public_id)
+                print(f"✅ Ancien reçu supprimé: {old_recu_public_id}")
+                
+        except Exception as e:
+            print(f"⚠️ Erreur lors de la suppression des anciennes images: {e}")
+    
+    def delete(self, *args, **kwargs):
+        """Supprime l'image Cloudinary lors de la suppression de l'objet"""
+        try:
+            # Vérifier si l'image existe et a un public_id
+            if self.photo and hasattr(self.photo, 'public_id'):
+                public_id = self.photo.public_id
+                if public_id:
+                    destroy(public_id)
+                    print(f"✅ Image Cloudinary supprimée: {public_id}")
+            if self.recu and hasattr(self.recu, 'public_id'):
+                public_id = self.recu.public_id
+                if public_id:
+                    destroy(public_id)
+                    print(f"✅ Image Cloudinary supprimée: {public_id}")
+        except Exception as e:
+            print(f"⚠️ Erreur lors de la suppression de l'image Cloudinary: {e}")
+        
+        # Toujours appeler super().delete() même en cas d'erreur
+        super().delete(*args, **kwargs)
 
     def get_fullname(self):
         return f'{self.user.first_name} {self.user.last_name}'
@@ -253,8 +320,7 @@ class Candidate(models.Model):
     
     # Campagne
     slogan = models.TextField()
-    photo_url = models.ImageField(upload_to='candidats/', blank=True, null=True,max_length=500,
-        help_text="Format recommandé: 300x300px, max 2MB")
+    photo_url = CloudinaryField('image', folder='candidats/')
     
     # Statistiques
     votes = models.IntegerField(default=0)
@@ -265,17 +331,48 @@ class Candidate(models.Model):
         if not self.name and self.prenom and self.nom:
             self.name = f"{self.prenom} {self.nom}"
         
+        # Initialiser les variables pour suivre les changements
+        old_photo_public_id = None
+
+        # Si c'est une mise à jour (objet existant)
         if self.pk:
             try:
-                old_candidate = Candidate.objects.get(pk=self.pk)
-                print(old_candidate.photo_url != self.photo_url)
-                print(old_candidate.photo_url)
-                if old_candidate.photo_url and old_candidate.photo_url != self.photo_url:
-                    old_candidate.photo_url.delete(save=False)
-            except Candidate.DoesNotExist:
+                old_instance = Candidate.objects.get(pk=self.pk)
+                
+                # Vérifier si la photo a changé
+                if (old_instance.photo_url and 
+                    self.photo_url and 
+                    hasattr(old_instance.photo_url, 'public_id') and
+                    hasattr(self.photo_url, 'public_id') and
+                    old_instance.photo_url.public_id != self.photo_url.public_id):
+                    old_photo_public_id = old_instance.photo_url.public_id
+                    
+            except Profile.DoesNotExist:
                 pass
-        super().save(*args, **kwargs)
-
+        # Sauvegarder d'abord l'objet
+        super().save(*args, **kwargs)  
+        # Supprimer les anciennes images APRÈS la sauvegarde
+        try:
+            if old_photo_public_id:
+                destroy(old_photo_public_id)
+                print(f"✅ Ancienne photo supprimée: {old_photo_public_id}")
+        except Exception as e:
+            print(f"⚠️ Erreur lors de la suppression des anciennes images: {e}")
+    
+    def delete(self, *args, **kwargs):
+        """Supprime l'image Cloudinary lors de la suppression de l'objet"""
+        try:
+            # Vérifier si l'image existe et a un public_id
+            if self.photo_url and hasattr(self.photo_url, 'public_id'):
+                public_id = self.photo_url.public_id
+                if public_id:
+                    destroy(public_id)
+                    print(f"✅ Image Cloudinary supprimée: {public_id}")
+        except Exception as e:
+            print(f"⚠️ Erreur lors de la suppression de l'image Cloudinary: {e}")
+        
+        # Toujours appeler super().delete() même en cas d'erreur
+        super().delete(*args, **kwargs)
     def __str__(self):
         return self.name
     def get_cycle_display(self):
