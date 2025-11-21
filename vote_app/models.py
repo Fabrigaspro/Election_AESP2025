@@ -96,23 +96,6 @@ class Profile(models.Model):
     is_connected = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        if self.pk:
-            try:
-                old_profile = Profile.objects.get(pk=self.pk)
-                print(old_profile.photo != self.photo)
-                print(old_profile.photo)
-                if old_profile.photo and old_profile.photo.url != self.photo.url:
-                    destroy(old_profile.photo.public_id)
-                    print(f"✅ Ancienne image de profile supprimée: {old_profile.photo.public_id}")
-                if old_profile.recu and old_profile.recu != self.recu:
-                    destroy(old_profile.recu.public_id)
-                    print(f"✅ Ancienne image de recu supprimée: {old_profile.recu.public_id}")
-            except Profile.DoesNotExist:
-                pass
-        self.matricule = self.user.username
-        super().save(*args, **kwargs)
-    
-    def save(self, *args, **kwargs):
         """Sauvegarde le profil avec gestion sécurisée des images Cloudinary"""
         
         # Initialiser les variables pour suivre les changements
@@ -142,6 +125,7 @@ class Profile(models.Model):
                     
             except Profile.DoesNotExist:
                 pass
+        self.matricule = self.user.username
         # Sauvegarder d'abord l'objet
         super().save(*args, **kwargs)  
         # Supprimer les anciennes images APRÈS la sauvegarde
