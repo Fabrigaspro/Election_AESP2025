@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -62,6 +64,7 @@
 
         header h1 {
             margin-bottom: 0.5rem;
+            margin-bottom: 0;
         }
 
         main {
@@ -208,6 +211,37 @@
 
         .admin-nav .btn {
             flex-grow: 1;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        /* Style pour le bouton actif */
+        .admin-nav .btn.active {
+            background: var(--secondary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(232, 119, 34, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Effet de surbrillance pour le bouton actif */
+        .admin-nav .btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        /* Effet de hover pour les boutons non actifs */
+        .admin-nav .btn:not(.active):hover {
+            background: #d46a1e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .admin-content {
@@ -557,7 +591,38 @@
         .message-warning { background-color: #fff3cd; color: #856404; }
 
         /* --- Responsive Design --- */
-        @media (max-width: 768px) {
+        @media (max-width: 854px) {
+            .logo {
+                height: 54px;
+                width: auto;
+            }
+
+            header h1 {
+                margin-bottom: 0.5rem;
+                font-size: 22px;
+                margin-bottom: 0;
+            }
+            header p {
+                margin-bottom: 0.5rem;
+                font-size: 10px;
+            }
+
+        }
+        @media (max-width: 580px) {
+            .logo {
+                height: 50px;
+                width: auto;
+            }
+
+            header h1 {
+                margin-bottom: 0.5rem;
+                font-size: 18px;
+                margin-bottom: 0;
+            }
+            header p {
+                margin-bottom: 0.5rem;
+                font-size: 10px;
+            }
             .dashboard-header {
                 flex-direction: column;
                 gap: 1rem;
@@ -585,6 +650,97 @@
                 grid-template-columns: 1fr;
             }
         }
+        @media (max-width: 492px) {
+            .logo {
+                height: 47px;
+                width: auto;
+            }
+
+            header h1 {
+                margin-bottom: 0.5rem;
+                font-size: 16px;
+                margin-bottom: 0;
+            }
+            header p {
+                margin-bottom: 0.5rem;
+                font-size: 10px;
+            }
+
+        }
+        @media (max-width: 447px) {
+            .logo {
+                height: 54px;
+                width: auto;
+            }
+
+            header h1 {
+                margin-bottom: 0.5rem;
+                font-size: 13px;
+                margin-bottom: 0;
+            }
+            header p {
+                margin-bottom: 0.5rem;
+                font-size: 10px;
+            }
+            footer p {
+                font-size: 12px;
+            }
+
+        }
+        @media (max-width: 401px) {
+            .logo {
+                height: 45px;
+                width: auto;
+            }
+
+            header h1 {
+                margin-bottom: 0.5rem;
+                font-size: 11px;
+                margin-bottom: 0;
+            }
+            header p {
+                margin-bottom: 0.5rem;
+                font-size: 8px;
+            }
+
+        }
+        @media (max-width: 347px) {
+            .logo {
+                height: 34px;
+                width: auto;
+            }
+
+            header h1 {
+                margin-bottom: 0.5rem;
+                font-size: 11px;
+                margin-bottom: 0;
+            }
+            header p {
+                margin-bottom: 0.5rem;
+                font-size: 8px;
+            }
+            footer p {
+                font-size: 10px;
+            }
+
+        }
+        @media (max-width: 326px) {
+            .logo {
+                height: 30px;
+                width: auto;
+            }
+
+            header h1 {
+                margin-bottom: 0.5rem;
+                font-size: 10px;
+                margin-bottom: 0;
+            }
+            header p {
+                margin-bottom: 0.5rem;
+                font-size: 8px;
+            }
+
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -592,14 +748,14 @@
 
     <header>
         <div class="logo-container">
-            <img src="/static/vote_app/images/AESP.png" alt="Logo AESP" class="logo">
+            <img src="{% static 'vote_app/images/AESP.png' %}" alt="Logo AESP" class="logo">
         </div>
         <div class="container">
-            <h1>Élections du Bureau de l'AESP</h1>
+            <h1>Élections du Bureau de l'AESP 2025/2026</h1>
             <p>Association des Étudiants de South Polytech</p>
         </div>
         <div class="logo-container">
-            <img src="/static/vote_app/images/SP.png" alt="Logo SP" class="logo">
+            <img src="{% static 'vote_app/images/SP.png' %}" alt="Logo SP" class="logo">
         </div>
     </header>
 
@@ -629,7 +785,7 @@
         <!-- Vue de Connexion / Inscription -->
         <div id="authView" class="view active">
             <div class="logo-container text-center" style="justify-content: center; margin-bottom: 1rem;">
-                <img src="/static/vote_app/images/AESP.png" alt="Logo AESP" class="logo">
+                <img src="{% static 'vote_app/images/AESP.png' %}" alt="Logo AESP" class="logo">
             </div>
             <div id="loginFormContainer" class="form-container">
                 <h2>Connexion</h2>
@@ -1214,7 +1370,7 @@
                     showView('studentPendingView');
                 } else if (state.currentUser.status === 'validated') {
                     if (state.currentUser.has_voted) {
-                        studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !,`;
+                        studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
                         showView('studentVotedView');
                     } else {
                         showView('studentVoteView');
@@ -1233,9 +1389,13 @@
             candidatesForVote.innerHTML = '';
             selectedCandidateId = null;
             selectedCandidateInfo.style.display = 'none';
-            
-            if (state.electionStatus !== 'active') {
+            console.log(state.electionStatus)
+            if (state.electionStatus == 'pending') {
                 electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection n\'est pas encore ouverte.</div>';
+                return;
+            }
+            if (state.electionStatus == 'closed') {
+                electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection est terminée !</div>';
                 return;
             }
             
@@ -1345,8 +1505,18 @@
         });
 
         function switchAdminTab(targetId) {
+            // Désactiver tous les contenus
             adminContents.forEach(content => content.classList.remove('active'));
-            document.getElementById(targetId).classList.add('active');
+            // Désactiver tous les boutons
+            adminNavButtons.forEach(btn => btn.classList.remove('active'));            
+            // Activer le contenu cible
+            document.getElementById(targetId).classList.add('active');            
+            // Activer le bouton correspondant
+            const activeButton = Array.from(adminNavButtons).find(btn => 
+                btn.dataset.target === targetId            );
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
         }
 
         function renderPendingUsers() {
@@ -1357,37 +1527,38 @@
             }
 
             state.pendingUsers.forEach(user => {
-        const userDiv = document.createElement('div');
-        userDiv.className = 'list-item';
-        userDiv.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
-                <a href="${user.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
-                    <img src="${user.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
-                     alt="Photo de ${user.prenom} ${user.nom}"
-                     style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
-                </a>
-                <div>
-                    <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                    <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
-                    <a href="${user.recu_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
-                        <i class="fas fa-file-invoice"></i> Voir le reçu
+                const userDiv = document.createElement('div');
+                userDiv.className = 'list-item';
+                userDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+                    <a href="${user.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                        <img src="${user.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
+                         alt="Photo de ${user.prenom} ${user.nom}"
+                         style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
                     </a>
+                    <div>
+                        <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
+                        <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
+                        <a href="${user.recu_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                            <i class="fas fa-file-invoice"></i> Voir le reçu
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-success" data-user-id="${user.id}">
-                    <i class="fas fa-check"></i> Valider
-                </button>
-                <button class="btn btn-danger" data-user-id="${user.id}">
-                    <i class="fas fa-times"></i> Supprimer
-                </button>
-            </div>
-        `;
-        pendingUsersList.appendChild(userDiv);
-});
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-success" data-user-id="${user.id}">
+                        <i class="fas fa-check"></i> Valider
+                    </button>
+                    <button class="btn btn-danger" data-user-id="${user.id}">
+                        <i class="fas fa-times"></i> Supprimer
+                    </button>
+                </div>
+            `;
+                pendingUsersList.appendChild(userDiv);
+            });
         }
 
         pendingUsersList.addEventListener('click', async (e) => {
+            console.log("appuyé !!!!")
             if (e.target.tagName !== 'BUTTON') return;
             const userId = e.target.dataset.userId;
             if (!userId) return;
@@ -1408,7 +1579,30 @@
                 alert(`Erreur : ${error.message}`);
             }
         });
+        usersList.addEventListener('click', async (e) => {
+            if (e.target.tagName !== 'BUTTON') return;
+            const userId = e.target.dataset.userId;
+            if (!userId) return;
 
+            try {
+                if (e.target.classList.contains('btn-danger')) {
+                    if (confirm("Êtes-vous sûr de vouloir desactiver cet étudiant ?")) {
+                        await apiFetch(`/api/users/${userId}/`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ status: 'pending' })
+                        });
+                    }
+                } else if (e.target.classList.contains('btn-danger')) {
+                    if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+                        await apiFetch(`/api/users/${userId}/`, { method: 'DELETE' });
+                    }
+                }
+                await checkSession();
+            } catch (error) {
+                alert(`Erreur : ${error.message}`);
+            }
+        });
+        
         // Formulaire d'ajout de candidat amélioré
         // fonctions pour gérer les dépendances entre cycle et specialité niveau
         async function updateSpecialitesCandidatesByCycle(cycle) {
@@ -1549,7 +1743,7 @@
              }
         });
 
-        // Dans la fonction renderElectionStatus()
+        // 
         function renderElectionStatus() {
             const statusText = { 
                 pending: "🟡 En attente", 
@@ -1716,17 +1910,44 @@
                 usersList.innerHTML = '<p>Aucun utilisateur enregistré.</p>';
                 return;
             }
-
+            // Afficher le nombre total d'inscrits
+            const countDiv = document.createElement('div');
+            countDiv.className = 'list-item';
+            countDiv.innerHTML = `
+                <div><h4>Total des inscrits : ${state.allUsers.length-state.pendingUsers.length}</h4></div>
+                <div><h4>Total en attente : ${state.pendingUsers.length}</h4></div>
+            `;
+            usersList.appendChild(countDiv);
+            
+            // Afficher la liste des Eudiants
             state.allUsers.forEach(user => {
                 const userDiv = document.createElement('div');
                 userDiv.className = 'list-item';
                 userDiv.innerHTML = `
-                    <div>
-                        <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                        <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validé'}</span>
-                        ${user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
+                    <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+                        <a href="${user.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                            <img src="${user.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
+                             alt="Photo de ${user.prenom} ${user.nom}"
+                             style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
+                        </a>
+                        <div>
+                            <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
+                            <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
+                            <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validé'}</span>
+                            ${user.status === 'pending' ? ' - ❌ Ne pas voter': user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
+                        </div>
                     </div>
+                    
                 `;
+                console.log(user.status)
+                console.log(user.status === 'validated')
+                if(user.status === 'validated' ){
+                    userDiv.innerHTML += `
+                        <button class="btn btn-danger" data-user-id="${user.id}">
+                            <i class="fas fa-times"></i> Desactiver
+                        </button>
+                    `;
+                }
                 usersList.appendChild(userDiv);
             });
         }
