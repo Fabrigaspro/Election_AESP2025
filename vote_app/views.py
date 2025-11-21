@@ -313,11 +313,8 @@ def manage_candidates_view(request):
     print("manage_candidates_view")
     if not is_user_admin(request.user):
         return JsonResponse({'error': 'Accès refusé.'}, status=403)
-    
     if request.method == 'POST':
-        try:
-            # Vérifier si c'est du FormData (avec fichier) ou du JSON
-            if request.content_type == 'multipart/form-data':
+        if request.content_type == 'multipart/form-data':
                 # Traitement pour FormData (avec photo)
                 nom = request.POST.get('nom')
                 prenom = request.POST.get('prenom')
@@ -333,7 +330,7 @@ def manage_candidates_view(request):
                 
                 # Créer le nom complet
                 name = f"{prenom} {nom}"
-                
+
                 # Vérifier si le candidat existe déjà
                 if Candidate.objects.filter(name=name).exists():
                     return JsonResponse({'error': 'Ce candidat existe déjà.'}, status=400)
@@ -347,36 +344,10 @@ def manage_candidates_view(request):
                     specialite=specialite,
                     niveau=niveau,
                     slogan=slogan,
-    
+                    photo_url = photo,
                 )
                 
-                # Gérer l'upload de la photo si elle existe
-                if photo:
-                    # Assurez-vous d'avoir un dossier 'candidats/' dans votre MEDIA_ROOT
-                    fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'candidats'))
-                    filename = fs.save(photo.name, photo)
-                    candidate.photo_url = os.path.join('/media/candidats', filename)
-                    candidate.save()
-                
-                return JsonResponse({
-                    'id': candidate.id, 
-                    'name': candidate.name, 
-                    'votes': candidate.votes,
-                    'photo_url': candidate.photo_url.url if candidate.photo_url else None
-                })
-                
-            else:
-                # Traitement pour JSON (ancienne méthode)
-                data = json.loads(request.body)
-                name = data.get('name')
-                if name and not Candidate.objects.filter(name=name).exists():
-                    candidate = Candidate.objects.create(name=name)
-                    return JsonResponse({'id': candidate.id, 'name': candidate.name, 'votes': candidate.votes})
-                return JsonResponse({'error': 'Nom de candidat invalide ou déjà existant.'}, status=400)
-                
-        except Exception as e:
-            return JsonResponse({'error': f'Erreur serveur: {str(e)}'}, status=500)
-    
+        return JsonResponse({'success': 'Inscription réussie ! Votre compte est en attente de validation.'})
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
 @csrf_exempt
