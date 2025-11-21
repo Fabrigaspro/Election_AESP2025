@@ -92,6 +92,58 @@
             display: block;
         }
 
+        /* --- Styles pour les Loaders --- */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loader-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            min-width: 200px;
+        }
+        
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        .loader-text {
+            color: var(--dark-gray);
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Désactiver les boutons pendant le loading */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         /* --- Styles des formulaires et boutons --- */
         .form-container {
             background: #fff;
@@ -274,13 +326,14 @@
         }
 
         /* --- Interface de Vote AMÉLIORÉE --- */
+        /* --- Interface de Vote AMÉLIORÉE --- */
         .candidates-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
             margin-top: 1.5rem;
         }
-
+        
         .candidate-card {
             text-align: center;
             background: #fff;
@@ -291,18 +344,20 @@
             border: 2px solid transparent;
             position: relative;
             overflow: hidden;
+            max-width: 100%; /* Empêche le débordement horizontal */
+            word-wrap: break-word; /* Force le retour à la ligne */
         }
-
+        
         .candidate-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 12px 35px rgba(0,0,0,0.15);
         }
-
+        
         .candidate-card.selected {
             border-color: var(--success-color);
             background: linear-gradient(135deg, #fff, #f8fff8);
         }
-
+        
         .candidate-card img {
             width: 140px;
             height: 140px;
@@ -312,7 +367,7 @@
             margin-bottom: 1rem;
             transition: all 0.3s ease;
         }
-
+        
         .candidate-card.selected img {
             border-color: var(--success-color);
             transform: scale(1.05);
@@ -322,8 +377,12 @@
             margin-bottom: 0.5rem;
             color: var(--primary-color);
             font-size: 1.3rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto; /* Césure des mots longs */
         }
-
+        
+        /* CORRECTION PLEINE LARGEUR POUR LES INFORMATIONS */
         .candidate-info {
             text-align: left;
             margin: 1rem 0;
@@ -331,20 +390,39 @@
             background: var(--light-gray);
             border-radius: 8px;
             font-size: 0.9rem;
+            width: 100%; /* Prend toute la largeur */
+            box-sizing: border-box; /* Inclut le padding dans la largeur */
         }
-
+        
         .candidate-info p {
             margin: 0.3rem 0;
             display: flex;
             align-items: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            min-width: 0; /* Permet au flex de bien fonctionner */
         }
-
+        
         .candidate-info i {
             margin-right: 0.5rem;
             color: var(--secondary-color);
             width: 16px;
+            flex-shrink: 0; /* Empêche l'icône de rétrécir */
         }
-
+        
+        /* Style pour le texte des informations */
+        .candidate-info strong {
+            flex-shrink: 0; /* Empêche le label de rétrécir */
+            margin-right: 0.3rem;
+        }
+        
+        .candidate-info span {
+            flex: 1; /* Prend l'espace restant */
+            min-width: 0; /* Permet au texte de se casser */
+            word-break: break-word; /* Force la césure des mots longs */
+        }
+        
+        /* CORRECTION PLEINE LARGEUR POUR LE SLOGAN */
         .slogan {
             font-style: italic;
             color: var(--secondary-color);
@@ -353,8 +431,13 @@
             background: linear-gradient(135deg, #fff3e0, #ffecb3);
             border-radius: 6px;
             border-left: 4px solid var(--secondary-color);
+            width: 100%; /* Prend toute la largeur */
+            box-sizing: border-box; /* Inclut le padding dans la largeur */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
         }
-
+        
         .vote-btn {
             background: var(--success-color);
             color: white;
@@ -366,19 +449,20 @@
             transition: all 0.3s ease;
             margin-top: 1rem;
             width: 100%;
+            box-sizing: border-box; /* Important pour la largeur 100% */
         }
-
+        
         .vote-btn:hover {
             background: #218838;
             transform: scale(1.05);
         }
-
+        
         .vote-btn:disabled {
             background: #6c757d;
             cursor: not-allowed;
             transform: none;
         }
-
+        
         .selection-badge {
             position: absolute;
             top: 10px;
@@ -391,7 +475,7 @@
             font-weight: bold;
             display: none;
         }
-
+        
         .candidate-card.selected .selection-badge {
             display: block;
         }
@@ -665,6 +749,45 @@
                 margin-bottom: 0.5rem;
                 font-size: 10px;
             }
+            
+            .candidates-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .candidate-card {
+                padding: 1rem;
+                margin: 0 0.5rem;
+            }
+            
+            .candidate-card img {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .candidate-card h4 {
+                font-size: 1.1rem;
+            }
+            
+            .candidate-info {
+                padding: 0.8rem;
+                font-size: 0.85rem;
+            }
+            
+            .candidate-info p {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+            }
+            
+            .candidate-info i {
+                margin-bottom: 0.2rem;
+            }
+            
+            .slogan {
+                padding: 0.6rem;
+                font-size: 0.9rem;
+            }
 
         }
         @media (max-width: 447px) {
@@ -745,6 +868,54 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <!-- Loaders pour les différentes opérations -->
+    <div id="globalLoader" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Chargement...</p>
+        </div>
+    </div>
+    
+    <div id="pageLoadLoader" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Chargement de l'application...</p>
+        </div>
+    </div>
+    
+    <div id="loginLoader" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Connexion en cours...</p>
+        </div>
+    </div>
+    
+    <div id="registerLoader" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Inscription en cours...</p>
+        </div>
+    </div>
+    
+    <div id="voteLoader" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Enregistrement de votre vote...</p>
+        </div>
+    </div>
+
+    <div id="registerCandidat" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Enregistrement du candidat...</p>
+        </div>
+    </div>
+    <div id="deleteCandidat" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Supression du candidat...</p>
+        </div>
+    </div>
 
     <header>
         <div class="logo-container">
@@ -1054,6 +1225,7 @@
             }
         }
     document.addEventListener('DOMContentLoaded', () => {
+        showLoader('pageLoadLoader');
 
         // =================================================================
         // ÉLÉMENTS DU DOM
@@ -1092,6 +1264,34 @@
         const confirmVoteBtn = document.getElementById('confirmVoteBtn');
         const candidatePhotoPreview = document.getElementById('candidatePhotoPreview');
         const candidatePhoto = document.getElementById('candidatePhoto');
+
+        // =================================================================
+        // FONCTIONS POUR LES LOADERS
+        // =================================================================
+        
+        function showLoader(loaderId) {
+            document.getElementById(loaderId).style.display = 'flex';
+        }
+        
+        function hideLoader(loaderId) {
+            document.getElementById(loaderId).style.display = 'none';
+        }
+        
+        function disableButtons(buttons) {
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+        
+        function enableButtons(buttons) {
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
 
         // =================================================================
         // VARIABLES GLOBALES
@@ -1249,15 +1449,17 @@
                 });
                 specialiteSelect.disabled = false;
                 
-                // Mettre à jour les niveaux
-                niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
-                data.niveaux.forEach(niveau => {
-                    const option = document.createElement('option');
-                    option.value = niveau[0];  // La valeur (ex: 'bts1')
-                    option.textContent = niveau[1];  // Le libellé (ex: 'BTS 1ère année')
-                    niveauSelect.appendChild(option);
-                });
-                niveauSelect.disabled = false;
+                // Mettre à jour les niveaux si pas ingenieur
+                if (cycle != 'ingenieur'){
+                    niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+                    data.niveaux.forEach(niveau => {
+                        const option = document.createElement('option');
+                        option.value = niveau; 
+                        option.textContent = niveau;
+                        niveauSelect.appendChild(option);
+                    });
+                    niveauSelect.disabled = false;
+                }
                     
             } catch (error) {
                 console.error('Erreur:', error);
@@ -1265,24 +1467,57 @@
                 niveauSelect.innerHTML = '<option value="">Erreur de chargement</option>';
             }
         }
+        function updateNiveauBySpecialityIng(speciality) {
+            const niveauSelect = document.getElementById('registerNiveau');
+            let niveauxList  = [];
+            // Vider les options actuelles
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauSelect.disabled = true;
+            if (!speciality) {
+                niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord la specialité</option>';
+                return;
+            }
+            if (speciality == 'Prépa') { niveauxList  = [1, 2] }
+            else { niveauxList  = [3, 4, 5] }
+            // Mettre à jour les spécialités
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauxList.forEach(niveau => {
+                const option = document.createElement('option');
+                option.value = niveau;  // La valeur (ex: 'informatique_bts')
+                option.textContent = niveau;  // Le libellé (ex: 'Informatique BTS')
+                niveauSelect.appendChild(option);
+            });
+            niveauSelect.disabled = false;
+        }
 
         // Écouteur pour le changement de cycle
         document.getElementById('registerCycle').addEventListener('change', function(e) {
             updateSpecialitesByCycle(e.target.value);
+        });
+        // Écouteur pour le changement de specialité ingenieur
+        document.getElementById('registerSpecialite').addEventListener('change', function(e) {
+            if (document.getElementById('registerCycle').value == "ingenieur"){
+                updateNiveauBySpecialityIng(e.target.value);
+            }
         });
 
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideMessage(registerError);
             hideMessage(registerSuccess);
-
+        
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('registerConfirmPassword').value;
             if (password !== confirmPassword) {
                 displayMessage(registerError, 'Les mots de passe ne correspondent pas.');
                 return;
             }
-
+        
+            // Désactiver le bouton d'inscription
+            const submitBtn = registerForm.querySelector('button[type="submit"]');
+            disableButtons([submitBtn]);
+            showLoader('registerLoader');
+        
             const formData = new FormData();
             formData.append('nom', document.getElementById('registerNom').value);
             formData.append('prenom', document.getElementById('registerPrenom').value);
@@ -1293,7 +1528,7 @@
             formData.append('password', password);
             formData.append('photo', registerPhoto.files[0]);
             formData.append('recu', registerRecu.files[0]);
-
+        
             try {
                 const data = await apiFetch('/api/register/', { 
                     method: 'POST', 
@@ -1306,9 +1541,13 @@
                 recuPreview.style.display = 'none';
                 hideMessage(registerError);
                 hideMessage(registerSuccess);
-
+        
             } catch (error) {
                 showConfirmation('error', error.message);
+            } finally {
+                // Réactiver le bouton et cacher le loader
+                enableButtons([submitBtn]);
+                hideLoader('registerLoader');
             }
         });
 
@@ -1318,7 +1557,12 @@
             
             const matricule = document.getElementById('loginMatricule').value;
             const password = document.getElementById('loginPassword').value;
-
+        
+            // Désactiver le bouton de connexion
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            disableButtons([submitBtn]);
+            showLoader('loginLoader');
+        
             try {
                 const user = await apiFetch('/api/login/', {
                     method: 'POST',
@@ -1331,6 +1575,10 @@
                 navigateToDashboard();
             } catch (error) {
                 displayMessage(loginError, error.message);
+            } finally {
+                // Réactiver le bouton et cacher le loader
+                enableButtons([submitBtn]);
+                hideLoader('loginLoader');
             }
         });
 
@@ -1340,6 +1588,18 @@
                 state.currentUser = null;
                 showView('authView');
             });
+        });
+        // Ajoutez cette fonction pour gérer l'actualisation de la page
+        window.addEventListener('beforeunload', function() {
+            showLoader('pageLoadLoader');
+        });
+        
+        // Et assurez-vous de cacher le loader si la page est rechargée
+        window.addEventListener('load', function() {
+            // Le loader sera déjà caché par checkSession(), mais au cas où
+            setTimeout(() => {
+                hideLoader('pageLoadLoader');
+            }, 1000);
         });
 
         async function checkSession() {
@@ -1356,6 +1616,9 @@
                 console.log(state.pendingUsers);
             } catch (error) {
                 showView('authView');
+            } finally {
+                // Cacher le loader de chargement page une fois tout chargé
+                hideLoader('pageLoadLoader');
             }
         }
 
@@ -1416,9 +1679,21 @@
                     <h4>${candidate.prenom} ${candidate.nom}</h4>
                     
                     <div class="candidate-info">
-                        <p><i class="fas fa-graduation-cap"></i> <strong>cycle:   </strong> ${candidate.cycle_display}</p>
-                        <p><i class="fas fa-book"></i> <strong>Spécialité:   </strong> ${candidate.specialite_display}</p>
-                        <p><i class="fas fa-layer-group"></i> <strong>Niveau:   </strong> ${candidate.niveau_display}</p>
+                        <p>
+                            <i class="fas fa-graduation-cap"></i> 
+                            <strong>Cycle:</strong> 
+                            <span>${candidate.cycle_display}</span>
+                        </p>
+                        <p>
+                            <i class="fas fa-book"></i> 
+                            <strong>Spécialité:</strong> 
+                            <span>${candidate.specialite_display}</span>
+                        </p>
+                        <p>
+                            <i class="fas fa-layer-group"></i> 
+                            <strong>Niveau:</strong> 
+                            <span>${candidate.niveau}</span>
+                        </p>
                     </div>
                     
                     <div class="slogan">
@@ -1433,6 +1708,7 @@
                 `;
                 candidatesForVote.appendChild(candidateDiv);
             });
+
         }
 
         // Gestion de la sélection des candidats
@@ -1467,13 +1743,19 @@
                 alert('Veuillez sélectionner un candidat avant de voter.');
                 return;
             }
-
+        
             if (confirm(`Êtes-vous sûr de vouloir voter pour ${selectedCandidateName.textContent} ?\n\nCette action est irréversible et vous ne pourrez plus modifier votre choix.`)) {
                 await castVote(selectedCandidateId);
             }
         });
 
         async function castVote(candidateId) {
+            // Désactiver tous les boutons de vote
+            const voteButtons = document.querySelectorAll('.vote-btn');
+            const confirmBtn = document.getElementById('confirmVoteBtn');
+            disableButtons([...voteButtons, confirmBtn]);
+            showLoader('voteLoader');
+        
             try {
                 await apiFetch('/api/vote/', {
                     method: 'POST',
@@ -1482,6 +1764,10 @@
                 await checkSession();
             } catch (error) {
                 alert(`Erreur lors du vote : ${error.message}`);
+            } finally {
+                // Réactiver les boutons et cacher le loader
+                enableButtons([...voteButtons, confirmBtn]);
+                hideLoader('voteLoader');
             }
         }
 
@@ -1538,7 +1824,7 @@
                     </a>
                     <div>
                         <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                        <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
+                        <strong>${user.cycle}-${user.specialite} ${user.niveau}</strong><br>
                         <a href="${user.recu_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
                             <i class="fas fa-file-invoice"></i> Voir le reçu
                         </a>
@@ -1610,8 +1896,8 @@
             const niveauSelect = document.getElementById('candidateNiveau');
             
             // Vider les options actuelles
-            specialiteSelect.innerHTML = '<option value="">Sélectionnez la spécialité</option>';
-            niveauSelect.innerHTML = '<option value="">Sélectionnez le niveau</option>';
+            specialiteSelect.innerHTML = '<option value="">Sélectionnez votre spécialité</option>';
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
             specialiteSelect.disabled = true;
             niveauSelect.disabled = true;
 
@@ -1640,15 +1926,17 @@
                 });
                 specialiteSelect.disabled = false;
                 
-                // Mettre à jour les niveaux
-                niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
-                data.niveaux.forEach(niveau => {
-                    const option = document.createElement('option');
-                    option.value = niveau[0];  // La valeur (ex: 'bts1')
-                    option.textContent = niveau[1];  // Le libellé (ex: 'BTS 1ère année')
-                    niveauSelect.appendChild(option);
-                });
-                niveauSelect.disabled = false;
+                // Mettre à jour les niveaux si pas ingenieur
+                if (cycle != 'ingenieur'){
+                    niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+                    data.niveaux.forEach(niveau => {
+                        const option = document.createElement('option');
+                        option.value = niveau; 
+                        option.textContent = niveau;
+                        niveauSelect.appendChild(option);
+                    });
+                    niveauSelect.disabled = false;
+                }
                     
             } catch (error) {
                 console.error('Erreur:', error);
@@ -1656,13 +1944,50 @@
                 niveauSelect.innerHTML = '<option value="">Erreur de chargement</option>';
             }
         }
+        function updateNiveauCandidatesBySpecialityIng(speciality) {
+            const niveauSelect = document.getElementById('candidateNiveau');
+            let niveauxList  = [];
+            // Vider les options actuelles
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauSelect.disabled = true;
+
+            if (!speciality) {
+                niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord la specialité</option>';
+                return;
+            }
+            if (speciality == 'Prépa') { niveauxList  = [1, 2] }
+            else { niveauxList  = [3, 4, 5] }
+            // Mettre à jour les spécialités
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauxList.forEach(niveau => {
+                const option = document.createElement('option');
+                option.value = niveau;  // La valeur (ex: 'informatique_bts')
+                option.textContent = niveau;  // Le libellé (ex: 'Informatique BTS')
+                niveauSelect.appendChild(option);
+            });
+            niveauSelect.disabled = false;
+        }
 
         // Écouteur pour le changement de cycle
         document.getElementById('candidateCycle').addEventListener('change', function(e) {
             updateSpecialitesCandidatesByCycle(e.target.value);
         });
+        // Écouteur pour le changement de SPECIALITE
+        document.getElementById('candidateSpecialite').addEventListener('change', function(e) {
+            if (document.getElementById('candidateCycle').value == "ingenieur"){
+                updateNiveauCandidatesBySpecialityIng(e.target.value);
+            }
+        });
         addCandidateForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (state.electionStatus === 'active') {
+                alert("Vous ne pouvez pas ajouter un candidat pendant une élection active.");
+                return;
+            }
+            // Désactiver le bouton d'ajout de candidat
+            const submitBtn = registerForm.querySelector('button[type="submit"]');
+            disableButtons([submitBtn]);
+            showLoader('registerCandidat');
             
             const nom = document.getElementById('candidateNom').value.trim();
             const prenom = document.getElementById('candidatePrenom').value.trim();
@@ -1696,6 +2021,10 @@
                 await checkSession();
             } catch (error) {
                 alert(`Erreur : ${error.message}`);
+            }finally {
+                // Réactiver le bouton et cacher le loader
+                enableButtons([submitBtn]);
+                hideLoader('registerCandidat');
             }
         });
 
@@ -1716,7 +2045,7 @@
                     </a>
                     <div style="flex-grow: 1; margin-left: 10px">
                         <strong>${candidate.prenom} ${candidate.nom}</strong><br>
-                        <small>${candidate.cycle_display} - ${candidate.niveau_display} ${candidate.specialite} | "${candidate.slogan}"</small><br>
+                        <small>${candidate.cycle_display} - ${candidate.specialite} ${candidate.niveau} | "${candidate.slogan}"</small><br>
                         <span style="color: var(--success-color); font-weight: bold;">
                             ${candidate.votes} vote(s)
                         </span>
@@ -1735,10 +2064,13 @@
              }
              if (confirm("Êtes-vous sûr de vouloir supprimer ce candidat ?")) {
                 try {
+                    showLoader('deleteCandidat');
                     await apiFetch(`/api/candidates/${e.target.dataset.candidateId}/`, { method: 'DELETE' });
                     await checkSession();
                 } catch (error) {
                     alert(`Erreur : ${error.message}`);
+                }finally {
+                    hideLoader('deleteCandidat');
                 }
              }
         });
@@ -1782,8 +2114,8 @@
                         <div class="stat-label">Votes totaux</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${totalVoters}</div>
-                        <div class="stat-label">Électeurs ayant voté</div>
+                        <div class="stat-number">${totalUsers}</div>
+                        <div class="stat-label">Électeurs inscrits</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">${participationRate}%</div>
@@ -1919,7 +2251,7 @@
             `;
             usersList.appendChild(countDiv);
             
-            // Afficher la liste des Eudiants
+            // Afficher la liste des Etudiants
             state.allUsers.forEach(user => {
                 const userDiv = document.createElement('div');
                 userDiv.className = 'list-item';
@@ -1932,7 +2264,7 @@
                         </a>
                         <div>
                             <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                            <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
+                            <strong>${user.cycle_display} - ${user.specialite} ${user.niveau}</strong><br>
                             <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validé'}</span>
                             ${user.status === 'pending' ? ' - ❌ Ne pas voter': user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
                         </div>

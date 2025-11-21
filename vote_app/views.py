@@ -29,25 +29,12 @@ def get_specialites_by_cycle(cycle):
 def get_niveaux_by_cycle(cycle):
     """Retourne les niveaux disponibles pour un cycle donné"""
     niveaux = {
-        'bts': Profile.NIVEAUX_BTS,
-        'licence': Profile.NIVEAUX_LICENCE,
-        'master': Profile.NIVEAUX_MASTER,
-        'ingenieur': Profile.NIVEAUX_INGENIEUR,
+        'bts': [1, 2],
+        'licence': [3],
+        'master': [4, 5],
+        'ingenieur': [1, 2, 3, 4, 5],
     }
     return niveaux.get(cycle, [])
-
-def validate_cycle_specialite_niveau(cycle, specialite, niveau):
-    """Valide la cohérence entre cycle, spécialité et niveau"""
-    specialites_valides = get_specialites_by_cycle(cycle)
-    niveaux_valides = get_niveaux_by_cycle(cycle)
-    
-    # Vérifier si la spécialité est valide pour le cycle
-    specialite_valide = any(s[0] == specialite for s in specialites_valides)
-    
-    # Vérifier si le niveau est valide pour le cycle
-    niveau_valide = any(n[0] == niveau for n in niveaux_valides)
-    
-    return specialite_valide and niveau_valide
 
 def get_cycle_options(request):
     """API pour récupérer les spécialités et niveaux par cycle"""
@@ -57,13 +44,19 @@ def get_cycle_options(request):
         return JsonResponse({'error': 'Cycle non spécifié'}, status=400)
     
     specialites = get_specialites_by_cycle(cycle)
-    niveaux = get_niveaux_by_cycle(cycle)
-    
-    return JsonResponse({
-        'specialites': specialites,
-        'niveaux': niveaux
-    })
-
+    if cycle != 'ingenieur':
+        niveaux = get_niveaux_by_cycle(cycle)
+        
+        return JsonResponse({
+            'specialites': specialites,
+            'niveaux': niveaux
+        })
+    else:        
+        return JsonResponse({
+            'specialites': specialites,
+            'niveaux12': [1, 2],
+            'niveaux345': [3, 4, 5]
+        })
 # Vue pour servir la page HTML principale
 def index(request):
     return render(request, 'vote_app/index.html')
@@ -82,13 +75,13 @@ def user_to_dict(user):
     print("######################## ", is_user_admin(user)," ############################")
     if not hasattr(user, 'profile') and not is_user_admin(user):
         Profile.objects.create(user=user) # Crée un profil si manquant
-    profileUser = Profile.objects.get(user=user)
     return {
         'id': user.id,
         'nom': user.last_name,
         'prenom': user.first_name,
         'matricule': user.username,
         'cycle': user.profile.cycle,
+        'cycle_display': user.profile.get_cycle_display(),
         'specialite': user.profile.specialite,
         'niveau': user.profile.niveau,
         'photo_url': user.profile.photo.url if user.profile.photo else None,
@@ -193,9 +186,9 @@ def dashboard_data_view(request):
         # Ajouter les libellés
         candidate_data['cycle_display'] = candidate.get_cycle_display()
         candidate_data['specialite_display'] = candidate.specialite_display
-        candidate_data['niveau_display'] = candidate.niveau_display
         
         candidates.append(candidate_data)
+    print(candidates)
 
     # Pour l'admin, on renvoie aussi les listes d'utilisateurs
     pending_users = []

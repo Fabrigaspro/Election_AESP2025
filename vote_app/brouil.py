@@ -50,7 +50,7 @@ class Profile(models.Model):
     ]
 
     SPECIALITE_INGENIEUR = [
-        ('Prépa', 'Classe Preparatoire'),
+        ('Prepa', 'Classe Preparatoire'),
         ('GCE', 'Génie Civil'),
         ('GESI', 'Génie Électrique et Systèmes Intélligents'),
         ('GM', 'Génie Mécanique'),
@@ -58,12 +58,34 @@ class Profile(models.Model):
         ('GIT', 'Génie Informatique et Télécommunication'),
         ('QHSE', 'Qualité Higiène Sécurité Environnement'),
     ]
+    # Niveaux par cycle
+    NIVEAUX_BTS = [
+        ('BTS1', '1ère année'),
+        ('BTS2', '2ème année'),
+    ]
+
+    NIVEAUX_LICENCE = [
+        ('l3', '3ème année'),
+    ]
+
+    NIVEAUX_MASTER = [
+        ('m1', '1ère année'),
+        ('m2', '2ère année'),
+    ]
+
+    NIVEAUX_INGENIEUR = [
+        ('ing1', '1ère année'),
+        ('ing2', '2ème année'),
+        ('ing3', '3ème année'),
+        ('ing4', '4ème année'),
+        ('ing5', '5ème année'),
+    ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     matricule = models.CharField(max_length=100, default='MAT')
     cycle = models.CharField(max_length=100, choices=CYCLE_CHOICES, default='bts')
     specialite = models.CharField(max_length=100, blank=True, null=True)
-    niveau = models.IntegerField(blank=True)
+    niveau = models.CharField(max_length=50, blank=True, null=True)
     photo = CloudinaryField('image', folder='photos/')
     recu = CloudinaryField('image', folder='recus/')
     
@@ -154,6 +176,18 @@ class Profile(models.Model):
             return self.SPECIALITE_INGENIEUR
         return []
 
+    # Méthode pour obtenir les niveaux disponibles selon le cycle
+    def get_available_niveaux(self):
+        if self.cycle == 'bts':
+            return self.NIVEAUX_BTS
+        elif self.cycle == 'licence':
+            return self.NIVEAUX_LICENCE
+        elif self.cycle == 'master':
+            return self.NIVEAUX_MASTER
+        elif self.cycle == 'ingenieur':
+            return self.NIVEAUX_INGENIEUR
+        return []
+    
     def get_cycle_display(self):
         for code, name in self.CYCLE_CHOICES:
             if code == self.cycle:
@@ -172,6 +206,16 @@ class Profile(models.Model):
         print(specialites_dict)
         print(specialites_dict.get(self.specialite, self.specialite))
         return specialites_dict.get(self.specialite, self.specialite)
+    # Propriété pour afficher le libellé du niveau
+    @property
+    def niveau_display(self):
+        niveaux_dict = dict(
+            self.NIVEAUX_BTS + 
+            self.NIVEAUX_LICENCE + 
+            self.NIVEAUX_MASTER + 
+            self.NIVEAUX_INGENIEUR
+        )
+        return niveaux_dict.get(self.niveau, self.niveau)
 
     def __str__(self):
         return f"Profil de {self.user.username}"

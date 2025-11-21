@@ -904,6 +904,19 @@
         </div>
     </div>
 
+    <div id="registerCandidat" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Enregistrement du candidat...</p>
+        </div>
+    </div>
+    <div id="deleteCandidat" class="loader-overlay" style="display: none;">
+        <div class="loader-container">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Supression du candidat...</p>
+        </div>
+    </div>
+
     <header>
         <div class="logo-container">
             <img src="{% static 'vote_app/images/AESP.png' %}" alt="Logo AESP" class="logo">
@@ -1292,6 +1305,198 @@
             allUsers: []
         };
 
+        // Variables pour le rafraîchissement automatique
+        let refreshInterval = null;
+        const REFRESH_INTERVAL = 10000; // 10 secondes
+        let lastUpdateTimestamp = Date.now();
+
+        // =================================================================
+        // SYSTÈME DE RAFRAÎCHISSEMENT AUTOMATIQUE - AJOUTEZ CES FONCTIONS
+        // =================================================================
+
+        // Fonction pour démarrer le rafraîchissement automatique
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            
+            refreshInterval = setInterval(async () => {
+                try {
+                    await checkForUpdates();
+                } catch (error) {
+                    console.log('Erreur lors du rafraîchissement:', error);
+                }
+            }, REFRESH_INTERVAL);
+            
+            console.log('🔄 Rafraîchissement automatique activé');
+        }
+        
+        // Fonction pour arrêter le rafraîchissement automatique
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+                console.log('⏹️ Rafraîchissement automatique désactivé');
+            }
+        }
+        
+        // Fonction pour vérifier les mises à jour
+        async function checkForUpdates() {
+            try {
+                const data = await apiFetch('/api/dashboard_data/');
+                const currentTimestamp = Date.now();
+                
+                // Vérifier si les données ont changé
+                const hasChanges = hasDataChanged(data);
+                
+                if (hasChanges) {
+                    console.log('🔄 Données mises à jour détectées');
+                    
+                    // Mettre à jour l'état
+                    state.currentUser = data.user;
+                    state.candidates = data.candidates;
+                    state.electionStatus = data.election_status;
+                    state.pendingUsers = data.pending_users;
+                    state.allUsers = data.all_users;
+                    lastUpdateTimestamp = currentTimestamp;
+                    
+                    // Rafraîchir l'interface selon la vue active
+                    refreshCurrentView();
+                }
+            } catch (error) {
+                console.log('Erreur lors de la vérification des mises à jour:', error);
+                // En cas d'erreur, arrêter le rafraîchissement automatique
+                stopAutoRefresh();
+            }
+        }
+        
+        // Fonction pour détecter les changements dans les données
+        function hasDataChanged(newData) {
+            // Vérifier les candidats
+            if (state.candidates.length !== newData.candidates.length) {
+                return true;
+            }
+            
+            // Vérifier les votes des candidats
+            for (let i = 0; i < state.candidates.length; i++) {
+                if (state.candidates[i].votes !== newData.candidates[i].votes) {
+                    return true;
+                }
+            }
+            
+            // Vérifier le statut de l'élection
+            if (state.electionStatus !== newData.election_status) {
+                return true;
+            }
+            
+            // Vérifier les utilisateurs en attente
+            if (state.pendingUsers.length !== newData.pending_users.length) {
+                return true;
+            }
+            
+            // Vérifier les utilisateurs validés
+            if (state.allUsers.length !== newData.all_users.length) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Fonction pour rafraîchir la vue actuelle
+        function refreshCurrentView() {
+            const activeView = document.querySelector('.view.active');
+            if (!activeView) return;
+            
+            const viewId = activeView.id;
+            
+            switch(viewId) {
+                case 'adminDashboardView':
+                    renderAdminDashboard();
+                    break;
+                    
+                case 'studentVoteView':
+                    renderStudentVoteView();
+                    break;
+                    
+                case 'studentVotedView':
+                    // Juste mettre à jour le message de bienvenue si nécessaire
+                    if (state.currentUser) {
+                        studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
+                    }
+                    break;
+                    
+                case 'studentPendingView':
+                    // Pas besoin de rafraîchir cette vue
+                    break;
+                    
+                case 'authView':
+                    // Pas besoin de rafraîchir cette vue
+                    break;
+            }
+            
+            // Afficher une notification discrète des mises à jour
+            showUpdateNotification();
+        }
+        
+        // Fonction pour afficher une notification de mise à jour
+        function showUpdateNotification() {
+            // Créer une notification toast discrète
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--success-color);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-size: 14px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.innerHTML = '✅ Données mises à jour';
+            document.body.appendChild(toast);
+            
+            // Supprimer après 3 secondes
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // Ajouter les animations CSS pour les notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            .update-notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--success-color);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-size: 14px;
+            }
+        `;
+        document.head.appendChild(style);
+
         // =================================================================
         // FONCTIONS DE CONFIRMATION
         // =================================================================
@@ -1436,15 +1641,17 @@
                 });
                 specialiteSelect.disabled = false;
                 
-                // Mettre à jour les niveaux
-                niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
-                data.niveaux.forEach(niveau => {
-                    const option = document.createElement('option');
-                    option.value = niveau[0];  // La valeur (ex: 'bts1')
-                    option.textContent = niveau[1];  // Le libellé (ex: 'BTS 1ère année')
-                    niveauSelect.appendChild(option);
-                });
-                niveauSelect.disabled = false;
+                // Mettre à jour les niveaux si pas ingenieur
+                if (cycle != 'ingenieur'){
+                    niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+                    data.niveaux.forEach(niveau => {
+                        const option = document.createElement('option');
+                        option.value = niveau; 
+                        option.textContent = niveau;
+                        niveauSelect.appendChild(option);
+                    });
+                    niveauSelect.disabled = false;
+                }
                     
             } catch (error) {
                 console.error('Erreur:', error);
@@ -1452,10 +1659,38 @@
                 niveauSelect.innerHTML = '<option value="">Erreur de chargement</option>';
             }
         }
+        function updateNiveauBySpecialityIng(speciality) {
+            const niveauSelect = document.getElementById('registerNiveau');
+            let niveauxList  = [];
+            // Vider les options actuelles
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauSelect.disabled = true;
+            if (!speciality) {
+                niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord la specialité</option>';
+                return;
+            }
+            if (speciality == 'Prépa') { niveauxList  = [1, 2] }
+            else { niveauxList  = [3, 4, 5] }
+            // Mettre à jour les spécialités
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauxList.forEach(niveau => {
+                const option = document.createElement('option');
+                option.value = niveau;  // La valeur (ex: 'informatique_bts')
+                option.textContent = niveau;  // Le libellé (ex: 'Informatique BTS')
+                niveauSelect.appendChild(option);
+            });
+            niveauSelect.disabled = false;
+        }
 
         // Écouteur pour le changement de cycle
         document.getElementById('registerCycle').addEventListener('change', function(e) {
             updateSpecialitesByCycle(e.target.value);
+        });
+        // Écouteur pour le changement de specialité ingenieur
+        document.getElementById('registerSpecialite').addEventListener('change', function(e) {
+            if (document.getElementById('registerCycle').value == "ingenieur"){
+                updateNiveauBySpecialityIng(e.target.value);
+            }
         });
 
         registerForm.addEventListener('submit', async (e) => {
@@ -1541,6 +1776,9 @@
 
         logoutButtons.forEach(btn => {
             btn.addEventListener('click', async () => {
+                // Arrêter le rafraîchissement automatique
+                stopAutoRefresh();
+                
                 await apiFetch('/api/logout/');
                 state.currentUser = null;
                 showView('authView');
@@ -1581,25 +1819,34 @@
 
         function navigateToDashboard() {
             if (!state.currentUser) return;
-
+        
+            // Arrêter le rafraîchissement précédent
+            stopAutoRefresh();
+        
             if (state.currentUser.is_admin) {
                 showView('adminDashboardView');
                 renderAdminDashboard();
+                // Démarrer le rafraîchissement automatique pour l'admin
+                startAutoRefresh();
             } else {
                 if (state.currentUser.status === 'pending') {
                     showView('studentPendingView');
+                    // Pas de rafraîchissement automatique pour les utilisateurs en attente
                 } else if (state.currentUser.status === 'validated') {
                     if (state.currentUser.has_voted) {
                         studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
                         showView('studentVotedView');
+                        // Rafraîchissement limité pour les utilisateurs ayant voté
+                        startAutoRefresh();
                     } else {
                         showView('studentVoteView');
                         renderStudentVoteView();
+                        // Rafraîchissement actif pour les utilisateurs pouvant voter
+                        startAutoRefresh();
                     }
                 }
             }
         }
-
         // =================================================================
         // INTERFACE ÉTUDIANT AMÉLIORÉE
         // =================================================================
@@ -1649,7 +1896,7 @@
                         <p>
                             <i class="fas fa-layer-group"></i> 
                             <strong>Niveau:</strong> 
-                            <span>${candidate.niveau_display}</span>
+                            <span>${candidate.niveau}</span>
                         </p>
                     </div>
                     
@@ -1781,7 +2028,7 @@
                     </a>
                     <div>
                         <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                        <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
+                        <strong>${user.cycle}-${user.specialite} ${user.niveau}</strong><br>
                         <a href="${user.recu_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
                             <i class="fas fa-file-invoice"></i> Voir le reçu
                         </a>
@@ -1853,8 +2100,8 @@
             const niveauSelect = document.getElementById('candidateNiveau');
             
             // Vider les options actuelles
-            specialiteSelect.innerHTML = '<option value="">Sélectionnez la spécialité</option>';
-            niveauSelect.innerHTML = '<option value="">Sélectionnez le niveau</option>';
+            specialiteSelect.innerHTML = '<option value="">Sélectionnez votre spécialité</option>';
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
             specialiteSelect.disabled = true;
             niveauSelect.disabled = true;
 
@@ -1883,15 +2130,17 @@
                 });
                 specialiteSelect.disabled = false;
                 
-                // Mettre à jour les niveaux
-                niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
-                data.niveaux.forEach(niveau => {
-                    const option = document.createElement('option');
-                    option.value = niveau[0];  // La valeur (ex: 'bts1')
-                    option.textContent = niveau[1];  // Le libellé (ex: 'BTS 1ère année')
-                    niveauSelect.appendChild(option);
-                });
-                niveauSelect.disabled = false;
+                // Mettre à jour les niveaux si pas ingenieur
+                if (cycle != 'ingenieur'){
+                    niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+                    data.niveaux.forEach(niveau => {
+                        const option = document.createElement('option');
+                        option.value = niveau; 
+                        option.textContent = niveau;
+                        niveauSelect.appendChild(option);
+                    });
+                    niveauSelect.disabled = false;
+                }
                     
             } catch (error) {
                 console.error('Erreur:', error);
@@ -1899,13 +2148,50 @@
                 niveauSelect.innerHTML = '<option value="">Erreur de chargement</option>';
             }
         }
+        function updateNiveauCandidatesBySpecialityIng(speciality) {
+            const niveauSelect = document.getElementById('candidateNiveau');
+            let niveauxList  = [];
+            // Vider les options actuelles
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauSelect.disabled = true;
+
+            if (!speciality) {
+                niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord la specialité</option>';
+                return;
+            }
+            if (speciality == 'Prépa') { niveauxList  = [1, 2] }
+            else { niveauxList  = [3, 4, 5] }
+            // Mettre à jour les spécialités
+            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauxList.forEach(niveau => {
+                const option = document.createElement('option');
+                option.value = niveau;  // La valeur (ex: 'informatique_bts')
+                option.textContent = niveau;  // Le libellé (ex: 'Informatique BTS')
+                niveauSelect.appendChild(option);
+            });
+            niveauSelect.disabled = false;
+        }
 
         // Écouteur pour le changement de cycle
         document.getElementById('candidateCycle').addEventListener('change', function(e) {
             updateSpecialitesCandidatesByCycle(e.target.value);
         });
+        // Écouteur pour le changement de SPECIALITE
+        document.getElementById('candidateSpecialite').addEventListener('change', function(e) {
+            if (document.getElementById('candidateCycle').value == "ingenieur"){
+                updateNiveauCandidatesBySpecialityIng(e.target.value);
+            }
+        });
         addCandidateForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (state.electionStatus === 'active') {
+                alert("Vous ne pouvez pas ajouter un candidat pendant une élection active.");
+                return;
+            }
+            // Désactiver le bouton d'ajout de candidat
+            const submitBtn = registerForm.querySelector('button[type="submit"]');
+            disableButtons([submitBtn]);
+            showLoader('registerCandidat');
             
             const nom = document.getElementById('candidateNom').value.trim();
             const prenom = document.getElementById('candidatePrenom').value.trim();
@@ -1939,6 +2225,10 @@
                 await checkSession();
             } catch (error) {
                 alert(`Erreur : ${error.message}`);
+            }finally {
+                // Réactiver le bouton et cacher le loader
+                enableButtons([submitBtn]);
+                hideLoader('registerCandidat');
             }
         });
 
@@ -1959,7 +2249,7 @@
                     </a>
                     <div style="flex-grow: 1; margin-left: 10px">
                         <strong>${candidate.prenom} ${candidate.nom}</strong><br>
-                        <small>${candidate.cycle_display} - ${candidate.niveau_display} ${candidate.specialite} | "${candidate.slogan}"</small><br>
+                        <small>${candidate.cycle_display} - ${candidate.specialite} ${candidate.niveau} | "${candidate.slogan}"</small><br>
                         <span style="color: var(--success-color); font-weight: bold;">
                             ${candidate.votes} vote(s)
                         </span>
@@ -1978,10 +2268,13 @@
              }
              if (confirm("Êtes-vous sûr de vouloir supprimer ce candidat ?")) {
                 try {
+                    showLoader('deleteCandidat');
                     await apiFetch(`/api/candidates/${e.target.dataset.candidateId}/`, { method: 'DELETE' });
                     await checkSession();
                 } catch (error) {
                     alert(`Erreur : ${error.message}`);
+                }finally {
+                    hideLoader('deleteCandidat');
                 }
              }
         });
@@ -2025,8 +2318,8 @@
                         <div class="stat-label">Votes totaux</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${totalVoters}</div>
-                        <div class="stat-label">Électeurs ayant voté</div>
+                        <div class="stat-number">${totalUsers}</div>
+                        <div class="stat-label">Électeurs inscrits</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">${participationRate}%</div>
@@ -2162,7 +2455,7 @@
             `;
             usersList.appendChild(countDiv);
             
-            // Afficher la liste des Eudiants
+            // Afficher la liste des Etudiants
             state.allUsers.forEach(user => {
                 const userDiv = document.createElement('div');
                 userDiv.className = 'list-item';
@@ -2175,7 +2468,7 @@
                         </a>
                         <div>
                             <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                            <strong>${user.Cycle}-${user.specialite}-${user.niveau}</strong><br>
+                            <strong>${user.cycle_display} - ${user.specialite} ${user.niveau}</strong><br>
                             <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validé'}</span>
                             ${user.status === 'pending' ? ' - ❌ Ne pas voter': user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
                         </div>
