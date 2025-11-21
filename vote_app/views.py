@@ -117,8 +117,8 @@ def register_view(request):
         user = User.objects.create_user(
             username=data['matricule'],
             password=data['password'],
-            first_name=data['prenom'],
-            last_name=data['nom']
+            first_name=data['nom'],
+            last_name=data['prenom']
         )
         
         # Crée le profil associé
