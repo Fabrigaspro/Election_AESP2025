@@ -376,7 +376,6 @@ def manage_candidates_view(request):
                 # Vérifier si le candidat existe déjà
                 if Candidate.objects.filter(name=name).exists():
                     return JsonResponse({'error': 'Ce candidat existe déjà.'}, status=400)
-                renderStudentVoteView
                 # Créer le candidat
                 candidate = Candidate.objects.create(
                     nom=nom,
