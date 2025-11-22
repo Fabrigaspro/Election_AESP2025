@@ -1328,6 +1328,8 @@
         }
         
         function hideLoader(loaderId) {
+            console.log('Cacher dans hideLoader avec loaderId = ', loaderId);
+
             document.getElementById(loaderId).style.display = 'none';
         }
         
@@ -1885,21 +1887,7 @@
                 showView('authView');
             });
         });
-        // Ajoutez cette fonction pour gérer l'actualisation de la page
-        window.addEventListener('beforeunload', function() {
-            showLoader('pageLoadLoader');
-            console.log("stopAutoRefresh a l'actualisation")
-            // Arrêter le rafraîchissement auto mais NE PAS montrer de loader
-            //stopAutoRefresh();
-        });
         
-        // Et assurez-vous de cacher le loader si la page est rechargée
-        window.addEventListener('load', function() {
-            // Cacher immédiatement tous les loaders au chargement
-            manageLoaders('hideAll');
-        });
-
-
         async function checkSession() {
             try {
                 // Cacher immédiatement la vue auth pendant la vérification
@@ -1919,6 +1907,7 @@
                 console.log('Session non valide, affichage login:', error);
                 showView('authView');
             } finally {
+                console.log('Cacher pageLoadLoader');
                 // Cacher le loader de chargement page une fois tout chargé
                 hideLoader('pageLoadLoader');
             }
@@ -1934,7 +1923,7 @@
             // Arrêter le rafraîchissement précédent
             stopAutoRefresh();
             console.log(state.currentUser)
-            console.log("_"*10)
+            console.log("________________________________")
         
             if (state.currentUser.is_admin) {
                 showView('adminDashboardView');
