@@ -227,6 +227,7 @@ def dashboard_data_view(request):
             'bureau_color': candidate.bureau_color,
             'bureau_name': candidate.bureau_name,
             'photo_url': candidate.photo_url.url if candidate.photo_url else None,  # Convertir Cloudinary en URL string
+            'programme_url': candidate.programme_url
         }
         
         # Ajouter les libellés
@@ -361,10 +362,10 @@ def manage_candidates_view(request):
                 niveau = request.POST.get('niveau')
                 slogan = request.POST.get('slogan')
                 photo = request.FILES.get('photo')
-                bureau_name=request.POST.get('bureau_name', 'Bureau Exécutif'),
+                programmePDF = request.FILES.get('programmePDF')
+                bureau_nom=request.POST.get('bureau_name')
                 bureau_color=request.POST.get('bureau_color', '#3498db')
-
-
+                
                 # Valider les données obligatoires
                 if not all([nom, prenom, cycle, specialite, niveau, slogan]):
                     return JsonResponse({'error': 'Tous les champs sont obligatoires.'}, status=400)
@@ -375,7 +376,7 @@ def manage_candidates_view(request):
                 # Vérifier si le candidat existe déjà
                 if Candidate.objects.filter(name=name).exists():
                     return JsonResponse({'error': 'Ce candidat existe déjà.'}, status=400)
-                
+                renderStudentVoteView
                 # Créer le candidat
                 candidate = Candidate.objects.create(
                     nom=nom,
@@ -386,10 +387,12 @@ def manage_candidates_view(request):
                     niveau=niveau,
                     slogan=slogan,
                     photo_url = photo,
-                    bureau_name=bureau_name,
-                    bureau_color=bureau_color
+                    bureau_name=bureau_nom,
+                    bureau_color=bureau_color,
+                    programme_pdf=programmePDF,
                     
                 )
+
                 
         return JsonResponse({'success': 'Inscription réussie ! Votre compte est en attente de validation.'})
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)

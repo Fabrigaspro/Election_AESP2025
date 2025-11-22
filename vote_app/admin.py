@@ -20,8 +20,22 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 @admin.register(Candidate)
 class CandidateAdmin(admin.ModelAdmin):
-    list_display = ('nom', 'prenom', 'cycle', 'specialite', 'niveau', 'votes', 'bureau_name', 'bureau_color', 'photo_link' )
-    search_fields = ('nom', 'specialite')
+    list_display = ('nom', 'prenom', 'cycle', 'specialite', 'niveau', 'votes', 'bureau_name', 'bureau_color', 'photo_link' , 'programme_url')
+    search_fields = ('nom', 'prenom', 'bureau_name', 'specialite')
+    readonly_fields = ['votes']
+
+    fieldsets = (
+        ('Informations Personnelles', {
+            'fields': ('nom', 'prenom', 'cycle', 'specialite', 'niveau')
+        }),
+        ('Campagne Électorale', {
+            'fields': ('slogan', 'photo_url', 'programme_pdf', 'bureau_name', 'bureau_color')
+        }),
+        ('Statistiques', {
+            'fields': ('votes', 'is_active')
+        }),
+    )
+
 
     def photo_preview(self, obj):
         if obj.photo:
@@ -35,7 +49,8 @@ class CandidateAdmin(admin.ModelAdmin):
         css = {
             'all': ('admin/css/custom.css',)
         }
-
+    
+    
 @admin.register(ElectionState)
 class ElectionAdmin(admin.ModelAdmin):
     list_display = ('status',)

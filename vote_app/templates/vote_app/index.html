@@ -406,6 +406,7 @@
             border: 4px solid var(--primary-color);
             margin-bottom: 1rem;
             transition: all 0.3s ease;
+            margin-top: 35px;
         }
         
         .candidate-card.selected img {
@@ -996,7 +997,7 @@
         <!-- Vue de Connexion / Inscription -->
         <div id="authView" class="view">
             <div class="logo-container text-center" style="justify-content: center; margin-bottom: 1rem;">
-                <img src="{% static 'vote_app/images/AESP.png' %}" alt="Logo AESP" class="logo">
+                <img src="{% static 'vote_app/images/IUGET.png' %}" alt="Logo AESP" class="logo">
             </div>
             <div id="loginFormContainer" class="form-container">
                 <h2>Connexion</h2>
@@ -1197,7 +1198,7 @@
                     <div class="candidate-form-grid">
                         <div class="form-group">
                             <label for="candidateBureau">Nom du Bureau</label>
-                            <input type="text" id="candidateBureau" required placeholder="Ex: Bureau Exécutif">
+                            <input type="text" id="candidateBureau" required placeholder="Ex: Bureau du renouveau">
                         </div>
                         <div class="form-group">
                             <label for="candidateCouleur">Couleur du Bureau</label>
@@ -1207,6 +1208,11 @@
                                 <span id="candidateCouleurText" style="font-size: 14px; color: #666;">#3498db</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="candidateProgramme_pdf">Programme de campagne PDF</label>
+                        <input type="file" id="candidateProgramme_pdf" name="candidateProgramme_pdf" 
+                               accept=".pdf" class="form-control" required>
                     </div>
                     <div class="form-group">
                         <label for="candidatePhoto">Photo du candidat</label>
@@ -1318,6 +1324,7 @@
         const confirmVoteBtn = document.getElementById('confirmVoteBtn');
         const candidatePhotoPreview = document.getElementById('candidatePhotoPreview');
         const candidatePhoto = document.getElementById('candidatePhoto');
+        const candidateProgramme_pdf = document.getElementById('candidateProgramme_pdf');
 
         // =================================================================
         // FONCTIONS POUR LES LOADERS
@@ -1581,14 +1588,16 @@
         });
         
         // Fonction pour générer le badge avec la couleur personnalisée
-        function getBureauBadge(bureauName, bureauColor) {
-            // Vérifier si la couleur est valide, sinon utiliser une couleur par défaut
+        function getBureauBadge(bureauName, bureauColor, bureauProg_link) {
+            // Vérifier si la couleur est valide, sinon utiliser une couleur par défaut ${bureauName || 'Bureau'}
             const validColor = bureauColor && bureauColor.startsWith('#') ? bureauColor : '#3498db';
             
             return `
-                <div class="bureau-badge" style="background: ${validColor};">
-                    <i class="fas fa-users"></i>${bureauName || 'Bureau'}
-                </div>
+                <a href="${bureauProg_link}">
+                    <div class="bureau-badge" style="background: ${validColor};">
+                        <i class="fas fa-users"></i> Voir le programme
+                    </div>
+                </a>
             `;
         }
         
@@ -1966,7 +1975,7 @@
             selectedCandidateInfo.style.display = 'none';
             console.log(state.electionStatus)
             if (state.electionStatus == 'pending') {
-                electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection n\'est pas encore ouverte.</div>';
+                electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection est ouverte.</div>';
                 return;
             }
             if (state.electionStatus == 'closed') {
@@ -1986,19 +1995,22 @@
                 // Récupérer le nom et la couleur du bureau depuis les données du candidat
                 const bureauName = candidate.bureau_name || 'Bureau';
                 const bureauColor = candidate.bureau_color || '#3498db';
-                const bureauBadge = getBureauBadge(bureauName, bureauColor);
+                const bureauProg = candidate.programme_url;
+                const bureauBadge = getBureauBadge(bureauName, bureauColor, bureauProg);
 
-
+                candidateDiv.style.background = candidate.bureau_color;
                 candidateDiv.innerHTML = `
                     ${bureauBadge}
                     <div class="selection-badge">
                         <i class="fas fa-check"></i> Sélectionné
                     </div>
-                    <img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(candidate.nom)}" 
+                    <a href="${candidate.photo_url}"><img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(candidate.nom)}" 
                          alt="Photo de ${candidate.prenom} ${candidate.nom}">
-                    <h4>${candidate.prenom} ${candidate.nom}</h4>
+                    </a>
+                    <h4 style="color: #FFFFFF; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);padding: 4px;
+                    background-color: rgba(0, 0, 0, 0.5);border-radius: 15px">${candidate.prenom} ${candidate.nom}</h4>
                     
-                    <div class="candidate-info">
+                    <div class="candidate-info" style="color: #000000">
                         <p>
                             <i class="fas fa-graduation-cap"></i> 
                             <strong>Cycle:</strong> 
@@ -2318,10 +2330,14 @@
             const specialite = document.getElementById('candidateSpecialite').value.trim();
             const niveau = document.getElementById('candidateNiveau').value;
             const slogan = document.getElementById('candidateSlogan').value.trim();
-            const bureau = document.getElementById('candidateBureau').value.trim();
+            const NomBureau = document.getElementById('candidateBureau').value.trim();
             const couleur = document.getElementById('candidateCouleur').value;
 
-            if (!nom || !prenom || !cycle || !specialite || !niveau || !slogan || !bureau || !couleur) {
+            console.log("bureau : ", NomBureau)
+            console.log("bureau : ", NomBureau)
+            console.log("bureau : ", NomBureau)
+
+            if (!nom || !prenom || !cycle || !specialite || !niveau || !slogan || !NomBureau || !couleur) {
                 alert('Veuillez remplir tous les champs obligatoires.');
                 return;
             }
@@ -2332,10 +2348,11 @@
             formData.append('cycle', cycle);
             formData.append('specialite', specialite);
             formData.append('niveau', niveau);
+            formData.append('bureau_name', NomBureau);
             formData.append('slogan', slogan);
-            formData.append('bureau_name', bureau);
             formData.append('bureau_color', couleur);
             formData.append('photo', candidatePhoto.files[0]);
+            formData.append('programmePDF', candidateProgramme_pdf.files[0]);
 
             try {
                 await apiFetch('/api/candidates/', {
@@ -2387,7 +2404,10 @@
                             </div>
                             <small>"${candidate.slogan}"</small><br>
                             <span style="color: var(--success-color); font-weight: bold;">
-                                ${candidate.votes} vote(s)
+                                ${candidate.votes} vote(s) <span style="color: #000000;"> | </span>  
+                                <a href="${candidate.programme_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                                    <i class="fas fa-file-invoice"></i> Voir le programme de campagne
+                                </a>
                             </span>
                         </div>
                     </div>

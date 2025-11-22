@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+from cloudinary_storage.storage import RawMediaCloudinaryStorage,  MediaCloudinaryStorage
 from cloudinary.models import CloudinaryField
 from cloudinary.uploader import destroy
 from django.utils import timezone
@@ -158,23 +159,46 @@ class Profile(models.Model):
         if self.pk:
             try:
                 old_instance = Profile.objects.get(pk=self.pk)
+                print("=== DEBUG DÉBUT ===")
+                # 1. Gestion changement Photo
+                if old_instance.photo:
+                    print("Ancienne photo existe")
+                    # Vérifier si un nouveau fichier a été uploadé
+                    if hasattr(self.photo, 'file'):  # C'est un nouveau fichier uploadé
+                        print("Nouveau fichier photo uploadé")
+                        old_photo_public_id = getattr(old_instance.photo, 'public_id', None)
+                    else:
+                        # Comparer les public_id si les deux sont des objets Cloudinary
+                        old_public_id = getattr(old_instance.photo, 'public_id', None)
+                        new_public_id = getattr(self.photo, 'public_id', None)
+                        
+                        print(f"Comparaison: {old_public_id} vs {new_public_id}")
+                        
+                        if old_public_id and new_public_id and old_public_id != new_public_id:
+                            print("Photo a changé")
+                            old_photo_public_id = old_public_id
                 
-                # Vérifier si la photo a changé
-                if (old_instance.photo and 
-                    self.photo and 
-                    hasattr(old_instance.photo, 'public_id') and
-                    hasattr(self.photo, 'public_id') and
-                    old_instance.photo.public_id != self.photo.public_id):
-                    old_photo_public_id = old_instance.photo.public_id
+                # 2. Gestion changement Recu AESP
+                if old_instance.recu:
+                    print("Ancienne recu existe")
+                    # Vérifier si un nouveau fichier a été uploadé
+                    if hasattr(self.recu, 'file'):  # C'est un nouveau fichier uploadé
+                        print("Nouveau fichier recu uploadé")
+                        old_recu_public_id = getattr(old_instance.recu, 'public_id', None)
+                    else:
+                        # Comparer les public_id si les deux sont des objets Cloudinary
+                        old_public_id = getattr(old_instance.recu, 'public_id', None)
+                        new_public_id = getattr(self.recu, 'public_id', None)
+                        
+                        print(f"Comparaison: {old_public_id} vs {new_public_id}")
+                        
+                        if old_public_id and new_public_id and old_public_id != new_public_id:
+                            print("Recu a changé")
+                            old_recu_public_id = old_public_id
                 
-                # Vérifier si le reçu a changé 
-                if (hasattr(old_instance, 'recu') and old_instance.recu and 
-                    hasattr(self, 'recu') and self.recu and
-                    hasattr(old_instance.recu, 'public_id') and
-                    hasattr(self.recu, 'public_id') and
-                    old_instance.recu.public_id != self.recu.public_id):
-                    old_recu_public_id = old_instance.recu.public_id
-                    
+                print(f"À supprimer - Photo: {old_photo_public_id}, Recu: {old_recu_public_id}")
+                print("=== DEBUG FIN ===")
+            
             except Profile.DoesNotExist:
                 pass
         self.matricule = self.user.username
@@ -257,7 +281,6 @@ class Profile(models.Model):
     def __str__(self):
         return f"Profil de {self.user.username}"
 
-# Modèle pour les candidats ou les listes
 class Candidate(models.Model):
 
     # Cycles disponibles
@@ -268,42 +291,42 @@ class Candidate(models.Model):
         ('ingenieur', 'Ingénieur'),
     ]
 
-    # Spécialités par cycle
+    # Spécialités (J'ai gardé vos listes, corrigé quelques fautes mineures)
     SPECIALITE_BTS = [
-        ('IIA', 'Informatique Industriele et Automatisme'),
+        ('IIA', 'Informatique Industrielle et Automatisme'),
         ('ET', 'ElectroTechnique'),
         ('RES', 'Réseau et sécurité'),
         ('GL', 'Génie Logiciel'),
     ]
 
     SPECIALITE_LICENCE = [
-        ('IIA', 'Informatique Industriele et Automatisme'),
+        ('IIA', 'Informatique Industrielle et Automatisme'),
         ('ET', 'ElectroTechnique'),
         ('RES', 'Réseau et sécurité'),
         ('GL', 'Génie Logiciel'),
     ]
 
     SPECIALITE_MASTER = [
-        ('IIA', 'Informatique Industriele et Automatisme'),
+        ('IIA', 'Informatique Industrielle et Automatisme'),
         ('ET', 'ElectroTechnique'),
         ('RES', 'Réseau et sécurité'),
         ('GL', 'Génie Logiciel'),
     ]
 
     SPECIALITE_INGENIEUR = [
-        ('Prepa', 'Classe Preparatoire'),
+        ('Prepa', 'Classe Préparatoire'),
         ('GCE', 'Génie Civil'),
-        ('GESI', 'Génie Électrique et Systèmes Intélligents'),
+        ('GESI', 'Génie Électrique et Systèmes Intelligents'),
         ('GM', 'Génie Mécanique'),
-        ('GMA', 'Génie Mécatronique et Antomobile'),
+        ('GMA', 'Génie Mécatronique et Automobile'), # Corrigé
         ('GIT', 'Génie Informatique et Télécommunication'),
-        ('QHSE', 'Qualité Higiène Sécurité Environnement'),
+        ('QHSE', 'Qualité Hygiène Sécurité Environnement'), # Corrigé
     ]
 
     # Informations personnelles
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
-    name = models.CharField(max_length=200, unique=True)  # Nom complet
+    name = models.CharField(max_length=200, unique=True, blank=True)  # blank=True car généré auto
     
     # Informations académiques
     cycle = models.CharField(max_length=100, choices=CYCLE_CHOICES, default='bts')
@@ -312,23 +335,25 @@ class Candidate(models.Model):
     
     # Campagne
     slogan = models.TextField()
+    
+    # Image du candidat
     photo_url = CloudinaryField('image', folder='candidats/')
     
+    # CORRECTION MAJEURE ICI : Utilisation de CloudinaryField avec resource_type='auto'
+    programme_pdf = CloudinaryField(
+        'Programme électoral (PDF)',
+        resource_type='auto', # Important pour éviter la corruption des PDF
+        folder='programmes_pdf/',
+        null=True,
+        blank=True
+    )
+
     # Statistiques
     votes = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
-
-    # NOUVEAUX CHAMPS POUR LE BUREAU
-    bureau_name = models.CharField(
-        max_length=100, 
-        default='Bureau Exécutif',
-        verbose_name='Nom du Bureau'
-    )
-    bureau_color = models.CharField(
-        max_length=7,  # Format hex: #FFFFFF
-        default='#3498db',
-        verbose_name='Couleur du Bureau'
-    )
+    # Champs Bureau
+    bureau_name = models.CharField(max_length=100, default='Bureau', verbose_name='Nom du Bureau' )
+    bureau_color = models.CharField(max_length=7, default='#3498db', verbose_name='Couleur du Bureau')
 
     def save(self, *args, **kwargs):
         # Générer automatiquement le name complet
@@ -337,81 +362,135 @@ class Candidate(models.Model):
         
         # Initialiser les variables pour suivre les changements
         old_photo_public_id = None
-
+        old_pdf_public_id = None
+        old_instance = None
+    
         # Si c'est une mise à jour (objet existant)
         if self.pk:
             try:
-                old_instance = Candidate.objects.get(pk=self.pk)
-                
-                # Vérifier si la photo a changé
-                if (old_instance.photo_url and 
-                    self.photo_url and 
-                    hasattr(old_instance.photo_url, 'public_id') and
-                    hasattr(self.photo_url, 'public_id') and
-                    old_instance.photo_url.public_id != self.photo_url.public_id):
-                    old_photo_public_id = old_instance.photo_url.public_id
+                old_instance = Candidate.objects.get(pk=self.pk)   
+                print("=== DEBUG DÉBUT ===")
+                # 1. Gestion changement Photo
+                if old_instance.photo_url:
+                    print("Ancienne photo existe")
+                    # Vérifier si un nouveau fichier a été uploadé
+                    if hasattr(self.photo_url, 'file'):  # C'est un nouveau fichier uploadé
+                        print("Nouveau fichier photo uploadé")
+                        old_photo_public_id = getattr(old_instance.photo_url, 'public_id', None)
+                    else:
+                        # Comparer les public_id si les deux sont des objets Cloudinary
+                        old_public_id = getattr(old_instance.photo_url, 'public_id', None)
+                        new_public_id = getattr(self.photo_url, 'public_id', None)
+                        
+                        print(f"Comparaison: {old_public_id} vs {new_public_id}")
+                        
+                        if old_public_id and new_public_id and old_public_id != new_public_id:
+                            print("Photo a changé")
+                            old_photo_public_id = old_public_id
+    
+                # 2. Gestion changement PDF 
+                if old_instance.programme_pdf:
+                    print("Ancien PDF existe")
                     
-            except Profile.DoesNotExist:
+                    # Vérifier si un nouveau fichier a été uploadé
+                    if hasattr(self.programme_pdf, 'file'):  # C'est un nouveau fichier uploadé
+                        print("Nouveau fichier PDF uploadé")
+                        old_pdf_public_id = getattr(old_instance.programme_pdf, 'public_id', None)
+                    else:
+                        # Comparer les public_id si les deux sont des objets Cloudinary
+                        old_public_id = getattr(old_instance.programme_pdf, 'public_id', None)
+                        new_public_id = getattr(self.programme_pdf, 'public_id', None)
+                        
+                        print(f"Comparaison PDF: {old_public_id} vs {new_public_id}")
+                        
+                        if old_public_id and new_public_id and old_public_id != new_public_id:
+                            print("PDF a changé")
+                            old_pdf_public_id = old_public_id
+                
+                print(f"À supprimer - Photo: {old_photo_public_id}, PDF: {old_pdf_public_id}")
+                print("=== DEBUG FIN ===")
+                
+                # Récupération des votes
+                try:
+                    from vote_app.models import Vote
+                    self.votes = Vote.objects.filter(candidate=old_instance).count()
+                except:
+                    pass
+                    
+            except Candidate.DoesNotExist:
                 pass
-        # Sauvegarder d'abord l'objet
+    
+        # Sauvegarder d'abord l'objet (CloudinaryField sera converti automatiquement)
         super().save(*args, **kwargs)  
-        # Supprimer les anciennes images APRÈS la sauvegarde
+        
+        # Supprimer les anciens fichiers APRÈS la sauvegarde réussie
         try:
             if old_photo_public_id:
                 destroy(old_photo_public_id)
                 print(f"✅ Ancienne photo supprimée: {old_photo_public_id}")
+            
+            if old_pdf_public_id:
+                destroy(old_pdf_public_id, resource_type='auto') 
+                print(f"✅ Ancien programme supprimé: {old_pdf_public_id}")
         except Exception as e:
-            print(f"⚠️ Erreur lors de la suppression des anciennes images: {e}")
-    
+            print(f"⚠️ Erreur lors du nettoyage Cloudinary: {e}")
+
     def delete(self, *args, **kwargs):
-        """Supprime l'image Cloudinary lors de la suppression de l'objet"""
+        """Supprime les fichiers Cloudinary lors de la suppression de l'objet"""
         try:
-            # Vérifier si l'image existe et a un public_id
+            # Suppression Photo
             if self.photo_url and hasattr(self.photo_url, 'public_id'):
                 public_id = self.photo_url.public_id
                 if public_id:
                     destroy(public_id)
                     print(f"✅ Image Cloudinary supprimée: {public_id}")
+            
+            # Suppression PDF
+            if self.programme_pdf and hasattr(self.programme_pdf, 'public_id'):
+                public_id = self.programme_pdf.public_id
+                if public_id:
+                    destroy(public_id, resource_type='auto')
+                    print(f"✅ PDF Cloudinary supprimé: {public_id}")
+
         except Exception as e:
-            print(f"⚠️ Erreur lors de la suppression de l'image Cloudinary: {e}")
+            print(f"⚠️ Erreur lors de la suppression Cloudinary: {e}")
         
-        # Toujours appeler super().delete() même en cas d'erreur
         super().delete(*args, **kwargs)
+
     def __str__(self):
-        return self.name
+        return self.name if self.name else "Candidat sans nom"
+    
+    
     @property
     def photo_link(self):
         if self.photo_url:
             return self.photo_url.url
         return None
-
+ 
+    @property
+    def programme_url(self):
+        if self.programme_pdf :
+            return self.programme_pdf.url
+        return None
+    
     def get_cycle_display(self):
         return dict(self.CYCLE_CHOICES).get(self.cycle, self.cycle)
 
-    # Propriété pour afficher le libellé de la spécialité
     @property
     def specialite_display(self):
-        specialites_dict = dict(
+        # Concaténation de toutes les listes pour la recherche
+        all_specs = (
             self.SPECIALITE_BTS + 
             self.SPECIALITE_LICENCE + 
             self.SPECIALITE_MASTER + 
             self.SPECIALITE_INGENIEUR
         )
+        specialites_dict = dict(all_specs)
         return specialites_dict.get(self.specialite, self.specialite)
-    # Propriété pour afficher le libellé du niveau
-    @property
-    def niveau_display(self):
-        niveaux_dict = dict(
-            self.NIVEAUX_BTS + 
-            self.NIVEAUX_LICENCE + 
-            self.NIVEAUX_MASTER + 
-            self.NIVEAUX_INGENIEUR
-        )
-        return niveaux_dict.get(self.niveau, self.niveau)
+
     @property
     def full_name(self):
         return f"{self.prenom} {self.nom}"
-
 # Modèle simple pour gérer l'état global de l'élection
 class ElectionState(models.Model):
     STATUS_CHOICES = [
@@ -456,13 +535,19 @@ class Vote(models.Model):
         unique_together = ['profile',]
         ordering = ['-voted_at']
     
+    def save(self, *args, **kwargs):
+        self.candidate.save()
+        super().save(*args, **kwargs)  
+
     def delete(self, *args, **kwargs):
+        print("self.profile.has_voted : ", self.profile.has_voted)
         self.profile.has_voted = False
         self.profile.save()
-        self.candidate.votes -= 1
-        self.candidate.save()
+        print("self.profile.has_voted : ", self.profile.has_voted)
 
         super().delete(*args, **kwargs)
+        self.candidate.save()
+
     
     def __str__(self):
         return f"{self.profile.matricule} a voté pour {self.candidate.name}"
