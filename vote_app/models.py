@@ -6,7 +6,7 @@ from cloudinary.models import CloudinaryField
 from cloudinary.uploader import destroy
 from django.utils import timezone
 from datetime import timedelta
-
+import secrets
 # Modèle pour étendre le modèle User de base de Django avec nos champs personnalisés
 class Profile(models.Model):
 
@@ -60,6 +60,7 @@ class Profile(models.Model):
         ('GIT', 'Génie Informatique et Télécommunication'),
         ('QHSE', 'Qualité Higiène Sécurité Environnement'),
     ]
+    TIMEOUT = 1 # Temps d'Expiration de chaque session en min
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     matricule = models.CharField(max_length=100, default='MAT')
@@ -74,21 +75,78 @@ class Profile(models.Model):
     has_voted = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_connected = models.BooleanField(default=False)
-    last_activity = models.DateTimeField(auto_now=True)
-
-    def is_actually_connected(self):
-        """Vérifie si l'utilisateur est vraiment connecté"""
-        if not self.is_connected:
-            return False
-    def update_activity(self):
-        """Met à jour le timestamp d'activité"""
+    last_activity = models.DateTimeField(default=timezone.now)
+    session_token = models.CharField(max_length=64, blank=True, null=True, unique=True)
+    session_expires = models.DateTimeField(null=True, blank=True)  # Expiration de session
+    
+    def generate_session_token(self):
+        """Génère un nouveau token de session avec expiration"""
+        self.session_token = secrets.token_urlsafe(32)
+        self.session_expires = timezone.now() + timedelta(minutes=self.TIMEOUT)  # Expire dans le temp defini TIMEOUT
+        if self.is_admin == 'admin':
+            self.session_expires = timezone.now() + timedelta(hours= 24)  # Reset à 10 min
+        self.is_connected = True
+        self.save()
+        return self.session_token
+    
+    def update_activity(self, request=None):
+        """Met à jour l'activité et prolonge la session"""
         self.last_activity = timezone.now()
-        self.save(update_fields=['last_activity'])
-        
-        # Considérer comme déconnecté après 30 minutes d'inactivité
-        timeout = timezone.now() - timedelta(minutes=10)
-        return self.last_activity > timeout
+        self.session_expires = timezone.now() + timedelta(minutes=self.TIMEOUT)  # Reset à 10 min
+        if self.is_admin == 'admin':
+            self.session_expires = timezone.now() + timedelta(hours= 24)  # Reset à 24h
 
+        self.save(update_fields=['last_activity', 'session_expires'])
+
+    def invalidate_session(self):
+        """Invalide la session (déconnexion normale)"""
+        self.is_connected = False
+        self.session_token = None
+        self.session_expires = None
+        self.save()
+
+    @property
+    def has_active_session(self):
+        """Vérifie si une session est active (non expirée)"""
+        if not self.is_admin and (not self.is_connected or not self.session_token or not self.session_expires):
+            return False
+        
+        if self.is_admin and self.is_connected :
+            return True
+        
+        # Vérifier si la session est expirée
+        if timezone.now() > self.session_expires:
+            # Session expirée - auto-nettoyage
+            self.is_connected = False
+            self.session_token = None
+            self.session_expires = None
+            self.save()
+            return False
+        
+        return True
+    
+    @property
+    def is_actually_connected(self):
+        """Vérifie la connexion basée sur l'activité récente"""
+        if not self.last_activity:
+            return False
+        
+        timeout_duration = timedelta(minutes=self.TIMEOUT)
+        timeout_threshold = timezone.now() - timeout_duration
+        
+        return self.last_activity > timeout_threshold
+    
+    def validate_session(self, request):
+        """Valide que la session actuelle est la bonne"""
+        current_token = request.session.get('session_token')
+        return current_token == self.session_token
+    
+    def force_disconnect(self):
+        """Force la déconnexion de l'utilisateur"""
+        self.last_activity = timezone.now() - timedelta(days=1)  # Date dans le passé
+        self.is_connected = False
+        self.save(update_fields=['last_activity', 'is_connected'])
+        
     def save(self, *args, **kwargs):
         """Sauvegarde le profil avec gestion sécurisée des images Cloudinary"""
         
@@ -175,7 +233,7 @@ class Profile(models.Model):
             if code == self.cycle:
                 return name
         return self.cycle
-
+    
     # Propriété pour afficher le libellé de la spécialité
     @property
     def specialite_display(self):

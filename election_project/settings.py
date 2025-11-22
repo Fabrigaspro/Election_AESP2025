@@ -71,7 +71,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'vote_app.middleware.ActivityMiddleware',
+    'vote_app.middleware.SessionManagementMiddleware',
 ]
 
 ROOT_URLCONF = 'election_project.urls'
@@ -125,10 +125,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'fr-fr'
+TIME_ZONE = 'Africa/Douala'
 USE_TZ = True
 USE_I18N = True
+USE_L10N = True
+
+# Si vous voulez supporter plusieurs langues
+LANGUAGES = [
+    ('fr', 'French'),
+    ('en', 'English'),
+]
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'

@@ -71,9 +71,6 @@ def is_user_admin(user):
 
 def user_to_dict(user):
     """Convertit un objet User/Profile en dictionnaire pour la réponse JSON."""
-    print("###################################################################")
-    print("#######################is_user_admin(user) ###########################")
-    print("######################## ", is_user_admin(user)," ############################")
     if not hasattr(user, 'profile') and not is_user_admin(user):
         Profile.objects.create(user=user) # Crée un profil si manquant
     return {
@@ -100,10 +97,6 @@ def user_to_dict(user):
 def register_view(request):
     if request.method == 'POST':
         data = request.POST
-        print("###################################################################")
-        print("#######################  data['matricule'] ###########################")
-        print("######################## ", data['matricule']," ############################")
-        print("######################## ", User.objects.filter(username=data['matricule']).exists()," ############################")
         if User.objects.filter(username=data['matricule']).exists():
             return JsonResponse({'error': 'Ce matricule est déjà utilisé.'}, status=400)
 
@@ -130,6 +123,7 @@ def register_view(request):
 
 @csrf_exempt
 def login_view(request):
+    print("Connexion en cours demarrée.......")
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -137,41 +131,39 @@ def login_view(request):
             password = data.get('password')
             
             user = authenticate(username=matricule, password=password)
-            
             if user is not None:
-                # Vérifier si l'utilisateur est déjà "connecté" mais inactif
-                try:
-                    profile = Profile.objects.get(user=user)
-                    
-                    # Si l'utilisateur est marqué comme connecté mais inactif depuis longtemps
-                    if profile.is_connected and not profile.is_actually_connected():
-                        # Réinitialiser le statut
-                        profile.is_connected = False
-                        profile.save()
-                    
-                    # Autoriser la connexion seulement si pas déjà connecté
-                    if not profile.is_connected:
-                        login(request, user)
-                        profile.is_connected = True
-                        profile.last_login = timezone.now()
-                        profile.last_activity = timezone.now()
-                        profile.save()
-                        
-                        return JsonResponse({
-                            'success': True,
-                            'user': user_to_dict(user)
-                        })
-                    else:
-                        return JsonResponse({
-                            'success': False,
-                            'error': 'Utilisateur déjà connecté sur un autre appareil'
-                        }, status=400)
-                        
-                except Profile.DoesNotExist:
+                # Générer un nouveau token de session
+                profile, created = Profile.objects.get_or_create(user=user)
+                
+                print("profile.has_active_session : ", profile.has_active_session)
+                # Vérifier s'il y a une session ACTIVE (non expirée)
+                if profile.has_active_session:
                     return JsonResponse({
                         'success': False,
-                        'error': 'Profil non trouvé'
+                        'error': 'Compte déjà connecté sur un autre appareil. Déconnectez-vous d\'abord ou attendez que la session expire.'
                     }, status=400)
+                
+                # Générer nouveau token
+                session_token = profile.generate_session_token()
+                # Stocker dans la session Django
+                request.session['session_token'] = session_token
+                request.session['user_id'] = user.id
+
+                # Mettre à jour l'activité
+                profile.last_activity = timezone.now()
+                profile.save(update_fields=['last_activity'])
+                
+                # Connecter l'utilisateur
+                login(request, user)
+
+                try:
+                    return JsonResponse({
+                        'success': True,
+                        'user': user_to_dict(user),
+                        'message': 'Connexion réussie'
+                    })
+                except Exception as e:
+                    print("ereur de la sortie JsonResponse : ", e)
             else:
                 return JsonResponse({
                     'success': False,
@@ -181,7 +173,7 @@ def login_view(request):
         except Exception as e:
             return JsonResponse({
                 'success': False,
-                'error': str(e)
+                'error': f'Erreur de connexion: {str(e)}'
             }, status=400)
     
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
@@ -191,14 +183,21 @@ def logout_view(request):
     if request.user.is_authenticated:
         try:
             profile = Profile.objects.get(user=request.user)
-            profile.is_connected = False
-            profile.save()
+            profile.invalidate_session()
         except Profile.DoesNotExist:
             pass
-        
+
+        # Déconnecter Django
+        #if(not is_user_admin(request.user)):
+        from django.contrib.auth import logout
         logout(request)
-    
-    return JsonResponse({'success': True})
+        # Nettoyer la session
+        request.session.flush()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Déconnexion réussie'
+        })
 
 @login_required
 def check_session_view(request):

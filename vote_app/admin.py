@@ -4,13 +4,13 @@ from .models import Profile, Candidate, ElectionState, Vote
 from django.utils.html import format_html
 
 # Personnalisation basique de l'interface
-admin.site.site_header = "Administration AESP - Système de Vote"
+admin.site.site_header = "ELECTION AESP - Système de Vote"
 admin.site.site_title = "AESP Voting Admin"
 admin.site.index_title = "Tableau de bord"
 
 @admin.register(Profile)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('matricule','get_fullname','role', 'status', 'cycle', 'specialite', 'niveau', 'is_connected', 'last_activity', 'has_voted', 'is_admin', 'photo', 'recu')
+    list_display = ('matricule','get_fullname','role', 'status', 'cycle', 'specialite', 'niveau', 'is_connected', 'last_activity', 'is_actually_connected', 'has_active_session', 'session_expires', 'session_token', 'has_voted', 'is_admin', 'photo', 'recu')
     list_filter = ('role', 'status', 'cycle', 'niveau')
     search_fields = ('cycle', 'niveau',)
 
