@@ -994,7 +994,7 @@
         </div>
 
         <!-- Vue de Connexion / Inscription -->
-        <div id="authView" class="view active">
+        <div id="authView" class="view">
             <div class="logo-container text-center" style="justify-content: center; margin-bottom: 1rem;">
                 <img src="{% static 'vote_app/images/AESP.png' %}" alt="Logo AESP" class="logo">
             </div>
@@ -1347,6 +1347,23 @@
             });
         }
 
+        // Remplacer les appels directs aux loaders par cette fonction
+        function manageLoaders(action, loaderId = null) {
+            const loaders = ['pageLoadLoader', 'loginLoader', 'registerLoader', 'voteLoader', 'registerCandidat', 'deleteCandidat'];
+            
+            if (action === 'hideAll') {
+                loaders.forEach(loader => hideLoader(loader));
+            } else if (action === 'show' && loaderId) {
+                // Cacher tous les autres loaders avant d'afficher celui demandé
+                loaders.forEach(loader => {
+                    if (loader !== loaderId) hideLoader(loader);
+                });
+                showLoader(loaderId);
+            } else if (action === 'hide' && loaderId) {
+                hideLoader(loaderId);
+            }
+        }
+
         // =================================================================
         // VARIABLES GLOBALES
         // =================================================================
@@ -1414,7 +1431,7 @@
                     state.allUsers = data.all_users;
                     lastUpdateTimestamp = currentTimestamp;
                     
-                    // Rafraîchir l'interface selon la vue active
+                    // Rafraîchir l'interface selon la vue active  checkSession
                     refreshCurrentView();
                 }
             } catch (error) {
@@ -1459,6 +1476,7 @@
         // Fonction pour rafraîchir la vue actuelle
         function refreshCurrentView() {
             const activeView = document.querySelector('.view.active');
+            console.log("Je viens dans refreshCurrentView avec activeView = ", activeView)
             if (!activeView) return;
             
             const viewId = activeView.id;
@@ -1847,7 +1865,7 @@
                 loginForm.reset();
                 studentWelcomeMsg.textContent = `Bienvenue, ${state.currentUser.prenom} ${state.currentUser.nom}`;
                 
-                navigateToDashboard();
+                checkSession();
             } catch (error) {
                 displayMessage(loginError, error.message);
             } finally {
@@ -1870,18 +1888,23 @@
         // Ajoutez cette fonction pour gérer l'actualisation de la page
         window.addEventListener('beforeunload', function() {
             showLoader('pageLoadLoader');
+            console.log("stopAutoRefresh a l'actualisation")
+            // Arrêter le rafraîchissement auto mais NE PAS montrer de loader
+            //stopAutoRefresh();
         });
         
         // Et assurez-vous de cacher le loader si la page est rechargée
         window.addEventListener('load', function() {
-            // Le loader sera déjà caché par checkSession(), mais au cas où
-            setTimeout(() => {
-                hideLoader('pageLoadLoader');
-            }, 1000);
+            // Cacher immédiatement tous les loaders au chargement
+            manageLoaders('hideAll');
         });
+
 
         async function checkSession() {
             try {
+                // Cacher immédiatement la vue auth pendant la vérification
+                hideView('authView');
+
                 const data = await apiFetch('/api/dashboard_data/');
                 console.log(data);
 
@@ -1891,41 +1914,53 @@
                 state.pendingUsers = data.pending_users;
                 state.allUsers = data.all_users;
                 navigateToDashboard();
-                console.log(state.pendingUsers);
+                console.log("state.pendingUsers :", state.pendingUsers);
             } catch (error) {
+                console.log('Session non valide, affichage login:', error);
                 showView('authView');
             } finally {
                 // Cacher le loader de chargement page une fois tout chargé
                 hideLoader('pageLoadLoader');
             }
         }
+        function hideView(viewId) {
+            document.getElementById(viewId).classList.remove('active');
+        }
 
         function navigateToDashboard() {
             if (!state.currentUser) return;
-        
+            console.log("stopAutoRefresh a navigateToDashboard")
+            
             // Arrêter le rafraîchissement précédent
             stopAutoRefresh();
+            console.log(state.currentUser)
+            console.log("_"*10)
         
             if (state.currentUser.is_admin) {
                 showView('adminDashboardView');
                 renderAdminDashboard();
                 // Démarrer le rafraîchissement automatique pour l'admin
                 startAutoRefresh();
+                console.log("state.currentUser.is_admin")
             } else {
                 if (state.currentUser.status === 'pending') {
                     showView('studentPendingView');
+                    console.log("state.currentUser.status === 'pending'")
                     // Pas de rafraîchissement automatique pour les utilisateurs en attente
                 } else if (state.currentUser.status === 'validated') {
+                    console.log("state.currentUser.status === 'validated'")
                     if (state.currentUser.has_voted) {
                         studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
                         showView('studentVotedView');
                         // Rafraîchissement limité pour les utilisateurs ayant voté
                         startAutoRefresh();
+                        console.log("state.currentUser.has_voted")
                     } else {
                         showView('studentVoteView');
                         renderStudentVoteView();
                         // Rafraîchissement actif pour les utilisateurs pouvant voter
                         startAutoRefresh();
+                        console.log("state.currentUser.has_voted == False")
                     }
                 }
             }
@@ -2602,6 +2637,7 @@
         // =================================================================
         // INITIALISATION
         // =================================================================
+        console.log('🚀 Démarrage de l application');
         checkSession();
 
     });

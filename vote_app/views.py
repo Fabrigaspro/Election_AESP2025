@@ -235,7 +235,6 @@ def dashboard_data_view(request):
         candidate_data['specialite_display'] = candidate.specialite_display
         
         candidates.append(candidate_data)
-    print(candidates)
 
     # Pour l'admin, on renvoie aussi les listes d'utilisateurs
     pending_users = []
@@ -244,7 +243,7 @@ def dashboard_data_view(request):
         pending_users = [user_to_dict(u) for u in User.objects.filter(profile__status='pending')]
         all_users = [user_to_dict(u) for u in User.objects.filter(profile__is_admin=False)]
 
-    print(pending_users)
+    print("dashboard_data GOODDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD")
 
     return JsonResponse({
         'user': user_to_dict(request.user),
