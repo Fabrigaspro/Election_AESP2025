@@ -1891,6 +1891,7 @@
         async function checkSession() {
             try {
                 // Cacher immédiatement la vue auth pendant la vérification
+                showView('pageLoadLoader');
                 hideView('authView');
 
                 const data = await apiFetch('/api/dashboard_data/');
