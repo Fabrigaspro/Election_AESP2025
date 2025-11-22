@@ -325,7 +325,47 @@
             font-weight: bold;
         }
 
-        /* --- Interface de Vote AMÉLIORÉE --- */
+        /* --- Badges de Bureau pour les Candidats --- */
+        .bureau-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        /* Icônes pour les badges */
+        .bureau-badge i {
+            margin-right: 4px;
+            font-size: 0.6rem;
+        }
+        
+        /* Ajustement pour le badge de sélection quand il y a un badge de bureau */
+        .candidate-card:has(.bureau-badge) .selection-badge {
+            top: 10px;
+            right: 10px;
+        }
+        
+        /* Style pour l'aperçu de couleur dans le formulaire */
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 2px solid #ddd;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
         /* --- Interface de Vote AMÉLIORÉE --- */
         .candidates-grid {
             display: grid;
@@ -1154,11 +1194,25 @@
                             <input type="text" id="candidateSlogan" required placeholder="Ex: L'avenir ensemble !">
                         </div>
                     </div>
+                    <div class="candidate-form-grid">
+                        <div class="form-group">
+                            <label for="candidateBureau">Nom du Bureau</label>
+                            <input type="text" id="candidateBureau" required placeholder="Ex: Bureau Exécutif">
+                        </div>
+                        <div class="form-group">
+                            <label for="candidateCouleur">Couleur du Bureau</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="color" id="candidateCouleur" value="#3498db" required 
+                                       style="width: 60px; height: 40px; border: none; border-radius: 4px; cursor: pointer;">
+                                <span id="candidateCouleurText" style="font-size: 14px; color: #666;">#3498db</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="candidatePhoto">Photo du candidat</label>
                         <input type="file" id="candidatePhoto" accept="image/*" required>
                         <img id="candidatePhotoPreview" class="file-preview">
-                    </div>
+                    </div>                    
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-plus"></i> Ajouter le candidat
                     </button>
@@ -1496,6 +1550,35 @@
             }
         `;
         document.head.appendChild(style);
+
+        // =================================================================
+        // GESTION DE LA COULEUR DU BUREAU
+        // =================================================================
+        
+        // Écouteur pour le changement de couleur
+        document.getElementById('candidateCouleur').addEventListener('input', function(e) {
+            document.getElementById('candidateCouleurText').textContent = e.target.value;
+        });
+        
+        // Fonction pour générer le badge avec la couleur personnalisée
+        function getBureauBadge(bureauName, bureauColor) {
+            // Vérifier si la couleur est valide, sinon utiliser une couleur par défaut
+            const validColor = bureauColor && bureauColor.startsWith('#') ? bureauColor : '#3498db';
+            
+            return `
+                <div class="bureau-badge" style="background: ${validColor};">
+                    <i class="fas fa-users"></i>${bureauName || 'Bureau'}
+                </div>
+            `;
+        }
+        
+        // Fonction pour calculer la luminosité d'une couleur (pour déterminer la couleur du texte)
+        function getColorBrightness(hexColor) {
+            const r = parseInt(hexColor.substr(1, 2), 16);
+            const g = parseInt(hexColor.substr(3, 2), 16);
+            const b = parseInt(hexColor.substr(5, 2), 16);
+            return (r * 299 + g * 587 + b * 114) / 1000;
+        }
 
         // =================================================================
         // FONCTIONS DE CONFIRMATION
@@ -1874,7 +1957,15 @@
             state.candidates.forEach(candidate => {
                 const candidateDiv = document.createElement('div');
                 candidateDiv.className = 'candidate-card';
+
+                // Récupérer le nom et la couleur du bureau depuis les données du candidat
+                const bureauName = candidate.bureau_name || 'Bureau';
+                const bureauColor = candidate.bureau_color || '#3498db';
+                const bureauBadge = getBureauBadge(bureauName, bureauColor);
+
+
                 candidateDiv.innerHTML = `
+                    ${bureauBadge}
                     <div class="selection-badge">
                         <i class="fas fa-check"></i> Sélectionné
                     </div>
@@ -1898,6 +1989,11 @@
                             <strong>Niveau:</strong> 
                             <span>${candidate.niveau}</span>
                         </p>
+                        <p>
+                            <i class="fas fa-building"></i> 
+                            <strong>Bureau:</strong> 
+                            <span>${bureauName}</span>
+                        </p>
                     </div>
                     
                     <div class="slogan">
@@ -1912,9 +2008,7 @@
                 `;
                 candidatesForVote.appendChild(candidateDiv);
             });
-
         }
-
         // Gestion de la sélection des candidats
         candidatesForVote.addEventListener('click', (e) => {
             if (e.target.classList.contains('vote-btn') || e.target.closest('.vote-btn')) {
@@ -2199,8 +2293,10 @@
             const specialite = document.getElementById('candidateSpecialite').value.trim();
             const niveau = document.getElementById('candidateNiveau').value;
             const slogan = document.getElementById('candidateSlogan').value.trim();
+            const bureau = document.getElementById('candidateBureau').value.trim();
+            const couleur = document.getElementById('candidateCouleur').value;
 
-            if (!nom || !prenom || !cycle || !specialite || !niveau || !slogan) {
+            if (!nom || !prenom || !cycle || !specialite || !niveau || !slogan || !bureau || !couleur) {
                 alert('Veuillez remplir tous les champs obligatoires.');
                 return;
             }
@@ -2212,6 +2308,8 @@
             formData.append('specialite', specialite);
             formData.append('niveau', niveau);
             formData.append('slogan', slogan);
+            formData.append('bureau_name', bureau);
+            formData.append('bureau_color', couleur);
             formData.append('photo', candidatePhoto.files[0]);
 
             try {
@@ -2222,6 +2320,9 @@
                 
                 addCandidateForm.reset();
                 candidatePhotoPreview.style.display = 'none';
+                // Réinitialiser la couleur
+                document.getElementById('candidateCouleur').value = '#3498db';
+                document.getElementById('candidateCouleurText').textContent = '#3498db';
                 await checkSession();
             } catch (error) {
                 alert(`Erreur : ${error.message}`);
@@ -2241,25 +2342,35 @@
             state.candidates.forEach(candidate => {
                 const candidateDiv = document.createElement('div');
                 candidateDiv.className = 'list-item';
+                
+                const bureauColor = candidate.bureau_color || '#3498db';
+                const bureauName = candidate.bureau_name || 'Bureau';
+                
                 candidateDiv.innerHTML = `
-                    <a href="${candidate.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
-                        <img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
-                         alt="Photo de ${candidate.prenom} ${candidate.nom}"
-                         style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
-                    </a>
-                    <div style="flex-grow: 1; margin-left: 10px">
-                        <strong>${candidate.prenom} ${candidate.nom}</strong><br>
-                        <small>${candidate.cycle_display} - ${candidate.specialite} ${candidate.niveau} | "${candidate.slogan}"</small><br>
-                        <span style="color: var(--success-color); font-weight: bold;">
-                            ${candidate.votes} vote(s)
-                        </span>
+                    <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+                        <a href="${candidate.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                            <img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(candidate.prenom + ' ' + candidate.nom)}" 
+                             alt="Photo de ${candidate.prenom} ${candidate.nom}"
+                             style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
+                        </a>
+                        <div style="flex-grow: 1;">
+                            <strong>${candidate.prenom} ${candidate.nom}</strong><br>
+                            <small>${candidate.cycle_display} - ${candidate.specialite} ${candidate.niveau}</small><br>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                                <div style="width: 16px; height: 16px; border-radius: 50%; background: ${bureauColor}; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+                                <span style="font-size: 0.85rem; color: #666;">${bureauName}</span>
+                            </div>
+                            <small>"${candidate.slogan}"</small><br>
+                            <span style="color: var(--success-color); font-weight: bold;">
+                                ${candidate.votes} vote(s)
+                            </span>
+                        </div>
                     </div>
                     <button class="btn btn-danger" data-candidate-id="${candidate.id}">Supprimer</button>
                 `;
                 candidatesList.appendChild(candidateDiv);
             });
         }
-
         candidatesList.addEventListener('click', async (e) => {
              if (e.target.tagName !== 'BUTTON' || !e.target.dataset.candidateId) return;
              if (state.electionStatus === 'active') {

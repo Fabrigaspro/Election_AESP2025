@@ -13,7 +13,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from .models import Profile, Candidate, ElectionState, Vote
-
+from django.utils import timezone
+from datetime import timedelta
 
 # Méthodes utilitaires pour les choix dynamiques
 def get_specialites_by_cycle(cycle):
@@ -130,30 +131,74 @@ def register_view(request):
 @csrf_exempt
 def login_view(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        print(data['matricule'], data['password'])
-        user = authenticate(request, username=data['matricule'], password=data['password'])
-        print(user)
-        profileUser = Profile.objects.get(user=user)
-        if profileUser.is_connected and not profileUser.is_admin:
-            return JsonResponse({'error': 'Une autre session est déjà ouverte sur ce compte.'}, status=401)
-        if user is not None:
-            login(request, user)
-            profileUser.is_connected = True
-            profileUser.save()
-            return JsonResponse(user_to_dict(user))
-        else:
-            return JsonResponse({'error': 'Matricule ou mot de passe incorrect.'}, status=401)
+        try:
+            data = json.loads(request.body)
+            matricule = data.get('matricule')
+            password = data.get('password')
+            
+            user = authenticate(username=matricule, password=password)
+            
+            if user is not None:
+                # Vérifier si l'utilisateur est déjà "connecté" mais inactif
+                try:
+                    profile = Profile.objects.get(user=user)
+                    
+                    # Si l'utilisateur est marqué comme connecté mais inactif depuis longtemps
+                    if profile.is_connected and not profile.is_actually_connected():
+                        # Réinitialiser le statut
+                        profile.is_connected = False
+                        profile.save()
+                    
+                    # Autoriser la connexion seulement si pas déjà connecté
+                    if not profile.is_connected:
+                        login(request, user)
+                        profile.is_connected = True
+                        profile.last_login = timezone.now()
+                        profile.last_activity = timezone.now()
+                        profile.save()
+                        
+                        return JsonResponse({
+                            'success': True,
+                            'user': user_to_dict(user)
+                        })
+                    else:
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Utilisateur déjà connecté sur un autre appareil'
+                        }, status=400)
+                        
+                except Profile.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Profil non trouvé'
+                    }, status=400)
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Matricule ou mot de passe incorrect'
+                }, status=400)
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
-@login_required
+login_required
 def logout_view(request):
-    print(request.user)
-    profileUser = Profile.objects.get(user=request.user)
-    profileUser.is_connected = False
-    profileUser.save()
-    logout(request)
-    return JsonResponse({'success': 'Déconnexion réussie.'})
+    if request.user.is_authenticated:
+        try:
+            profile = Profile.objects.get(user=request.user)
+            profile.is_connected = False
+            profile.save()
+        except Profile.DoesNotExist:
+            pass
+        
+        logout(request)
+    
+    return JsonResponse({'success': True})
 
 @login_required
 def check_session_view(request):
@@ -180,6 +225,8 @@ def dashboard_data_view(request):
             'niveau': candidate.niveau,
             'slogan': candidate.slogan,
             'votes': candidate.votes,
+            'bureau_color': candidate.bureau_color,
+            'bureau_name': candidate.bureau_name,
             'photo_url': candidate.photo_url.url if candidate.photo_url else None,  # Convertir Cloudinary en URL string
         }
         
@@ -316,6 +363,9 @@ def manage_candidates_view(request):
                 niveau = request.POST.get('niveau')
                 slogan = request.POST.get('slogan')
                 photo = request.FILES.get('photo')
+                bureau_name=request.POST.get('bureau_name', 'Bureau Exécutif'),
+                bureau_color=request.POST.get('bureau_color', '#3498db')
+
 
                 # Valider les données obligatoires
                 if not all([nom, prenom, cycle, specialite, niveau, slogan]):
@@ -338,6 +388,9 @@ def manage_candidates_view(request):
                     niveau=niveau,
                     slogan=slogan,
                     photo_url = photo,
+                    bureau_name=bureau_name,
+                    bureau_color=bureau_color
+                    
                 )
                 
         return JsonResponse({'success': 'Inscription réussie ! Votre compte est en attente de validation.'})

@@ -1305,6 +1305,198 @@
             allUsers: []
         };
 
+        // Variables pour le rafraîchissement automatique
+        let refreshInterval = null;
+        const REFRESH_INTERVAL = 10000; // 10 secondes
+        let lastUpdateTimestamp = Date.now();
+
+        // =================================================================
+        // SYSTÈME DE RAFRAÎCHISSEMENT AUTOMATIQUE - AJOUTEZ CES FONCTIONS
+        // =================================================================
+
+        // Fonction pour démarrer le rafraîchissement automatique
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            
+            refreshInterval = setInterval(async () => {
+                try {
+                    await checkForUpdates();
+                } catch (error) {
+                    console.log('Erreur lors du rafraîchissement:', error);
+                }
+            }, REFRESH_INTERVAL);
+            
+            console.log('🔄 Rafraîchissement automatique activé');
+        }
+        
+        // Fonction pour arrêter le rafraîchissement automatique
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+                console.log('⏹️ Rafraîchissement automatique désactivé');
+            }
+        }
+        
+        // Fonction pour vérifier les mises à jour
+        async function checkForUpdates() {
+            try {
+                const data = await apiFetch('/api/dashboard_data/');
+                const currentTimestamp = Date.now();
+                
+                // Vérifier si les données ont changé
+                const hasChanges = hasDataChanged(data);
+                
+                if (hasChanges) {
+                    console.log('🔄 Données mises à jour détectées');
+                    
+                    // Mettre à jour l'état
+                    state.currentUser = data.user;
+                    state.candidates = data.candidates;
+                    state.electionStatus = data.election_status;
+                    state.pendingUsers = data.pending_users;
+                    state.allUsers = data.all_users;
+                    lastUpdateTimestamp = currentTimestamp;
+                    
+                    // Rafraîchir l'interface selon la vue active
+                    refreshCurrentView();
+                }
+            } catch (error) {
+                console.log('Erreur lors de la vérification des mises à jour:', error);
+                // En cas d'erreur, arrêter le rafraîchissement automatique
+                stopAutoRefresh();
+            }
+        }
+        
+        // Fonction pour détecter les changements dans les données
+        function hasDataChanged(newData) {
+            // Vérifier les candidats
+            if (state.candidates.length !== newData.candidates.length) {
+                return true;
+            }
+            
+            // Vérifier les votes des candidats
+            for (let i = 0; i < state.candidates.length; i++) {
+                if (state.candidates[i].votes !== newData.candidates[i].votes) {
+                    return true;
+                }
+            }
+            
+            // Vérifier le statut de l'élection
+            if (state.electionStatus !== newData.election_status) {
+                return true;
+            }
+            
+            // Vérifier les utilisateurs en attente
+            if (state.pendingUsers.length !== newData.pending_users.length) {
+                return true;
+            }
+            
+            // Vérifier les utilisateurs validés
+            if (state.allUsers.length !== newData.all_users.length) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Fonction pour rafraîchir la vue actuelle
+        function refreshCurrentView() {
+            const activeView = document.querySelector('.view.active');
+            if (!activeView) return;
+            
+            const viewId = activeView.id;
+            
+            switch(viewId) {
+                case 'adminDashboardView':
+                    renderAdminDashboard();
+                    break;
+                    
+                case 'studentVoteView':
+                    renderStudentVoteView();
+                    break;
+                    
+                case 'studentVotedView':
+                    // Juste mettre à jour le message de bienvenue si nécessaire
+                    if (state.currentUser) {
+                        studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
+                    }
+                    break;
+                    
+                case 'studentPendingView':
+                    // Pas besoin de rafraîchir cette vue
+                    break;
+                    
+                case 'authView':
+                    // Pas besoin de rafraîchir cette vue
+                    break;
+            }
+            
+            // Afficher une notification discrète des mises à jour
+            showUpdateNotification();
+        }
+        
+        // Fonction pour afficher une notification de mise à jour
+        function showUpdateNotification() {
+            // Créer une notification toast discrète
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--success-color);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-size: 14px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.innerHTML = '✅ Données mises à jour';
+            document.body.appendChild(toast);
+            
+            // Supprimer après 3 secondes
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // Ajouter les animations CSS pour les notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            .update-notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--success-color);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-size: 14px;
+            }
+        `;
+        document.head.appendChild(style);
+
         // =================================================================
         // FONCTIONS DE CONFIRMATION
         // =================================================================
@@ -1584,6 +1776,9 @@
 
         logoutButtons.forEach(btn => {
             btn.addEventListener('click', async () => {
+                // Arrêter le rafraîchissement automatique
+                stopAutoRefresh();
+                
                 await apiFetch('/api/logout/');
                 state.currentUser = null;
                 showView('authView');
@@ -1624,25 +1819,34 @@
 
         function navigateToDashboard() {
             if (!state.currentUser) return;
-
+        
+            // Arrêter le rafraîchissement précédent
+            stopAutoRefresh();
+        
             if (state.currentUser.is_admin) {
                 showView('adminDashboardView');
                 renderAdminDashboard();
+                // Démarrer le rafraîchissement automatique pour l'admin
+                startAutoRefresh();
             } else {
                 if (state.currentUser.status === 'pending') {
                     showView('studentPendingView');
+                    // Pas de rafraîchissement automatique pour les utilisateurs en attente
                 } else if (state.currentUser.status === 'validated') {
                     if (state.currentUser.has_voted) {
                         studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
                         showView('studentVotedView');
+                        // Rafraîchissement limité pour les utilisateurs ayant voté
+                        startAutoRefresh();
                     } else {
                         showView('studentVoteView');
                         renderStudentVoteView();
+                        // Rafraîchissement actif pour les utilisateurs pouvant voter
+                        startAutoRefresh();
                     }
                 }
             }
         }
-
         // =================================================================
         // INTERFACE ÉTUDIANT AMÉLIORÉE
         // =================================================================

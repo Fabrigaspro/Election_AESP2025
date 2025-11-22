@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from cloudinary.models import CloudinaryField
 from cloudinary.uploader import destroy
+from django.utils import timezone
+from datetime import timedelta
 
 # Modèle pour étendre le modèle User de base de Django avec nos champs personnalisés
 class Profile(models.Model):
@@ -72,6 +74,20 @@ class Profile(models.Model):
     has_voted = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_connected = models.BooleanField(default=False)
+    last_activity = models.DateTimeField(auto_now=True)
+
+    def is_actually_connected(self):
+        """Vérifie si l'utilisateur est vraiment connecté"""
+        if not self.is_connected:
+            return False
+    def update_activity(self):
+        """Met à jour le timestamp d'activité"""
+        self.last_activity = timezone.now()
+        self.save(update_fields=['last_activity'])
+        
+        # Considérer comme déconnecté après 30 minutes d'inactivité
+        timeout = timezone.now() - timedelta(minutes=10)
+        return self.last_activity > timeout
 
     def save(self, *args, **kwargs):
         """Sauvegarde le profil avec gestion sécurisée des images Cloudinary"""
@@ -225,28 +241,6 @@ class Candidate(models.Model):
         ('GIT', 'Génie Informatique et Télécommunication'),
         ('QHSE', 'Qualité Higiène Sécurité Environnement'),
     ]
-    # Niveaux par cycle
-    NIVEAUX_BTS = [
-        ('bts1', '1ère année'),
-        ('bts2', '2ème année'),
-    ]
-
-    NIVEAUX_LICENCE = [
-        ('l3', '3ème année'),
-    ]
-
-    NIVEAUX_MASTER = [
-        ('m1', '1ère année'),
-        ('m2', '2ère année'),
-    ]
-
-    NIVEAUX_INGENIEUR = [
-        ('ing1', '1ère année'),
-        ('ing2', '2ème année'),
-        ('ing3', '3ème année'),
-        ('ing4', '4ème année'),
-        ('ing5', '5ème année'),
-    ]
 
     # Informations personnelles
     nom = models.CharField(max_length=100)
@@ -265,6 +259,18 @@ class Candidate(models.Model):
     # Statistiques
     votes = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+
+    # NOUVEAUX CHAMPS POUR LE BUREAU
+    bureau_name = models.CharField(
+        max_length=100, 
+        default='Bureau Exécutif',
+        verbose_name='Nom du Bureau'
+    )
+    bureau_color = models.CharField(
+        max_length=7,  # Format hex: #FFFFFF
+        default='#3498db',
+        verbose_name='Couleur du Bureau'
+    )
 
     def save(self, *args, **kwargs):
         # Générer automatiquement le name complet
@@ -315,11 +321,14 @@ class Candidate(models.Model):
         super().delete(*args, **kwargs)
     def __str__(self):
         return self.name
+    @property
+    def photo_link(self):
+        if self.photo_url:
+            return self.photo_url.url
+        return None
+
     def get_cycle_display(self):
-        for code, name in self.CYCLE_CHOICES:
-            if code == self.cycle:
-                return name
-        return self.cycle
+        return dict(self.CYCLE_CHOICES).get(self.cycle, self.cycle)
 
     # Propriété pour afficher le libellé de la spécialité
     @property
@@ -388,6 +397,14 @@ class Vote(models.Model):
     class Meta:
         unique_together = ['profile',]
         ordering = ['-voted_at']
+    
+    def delete(self, *args, **kwargs):
+        self.profile.has_voted = False
+        self.profile.save()
+        self.candidate.votes -= 1
+        self.candidate.save()
+
+        super().delete(*args, **kwargs)
     
     def __str__(self):
         return f"{self.profile.matricule} a voté pour {self.candidate.name}"
