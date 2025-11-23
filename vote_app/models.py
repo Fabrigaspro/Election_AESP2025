@@ -110,6 +110,9 @@ class Profile(models.Model):
     def has_active_session(self):
         """Vérifie si une session est active (non expirée)"""
         if not self.is_admin and (not self.is_connected or not self.session_token or not self.session_expires):
+            # Session expirée - auto-nettoyage
+            self.is_connected = False
+            self.save()
             return False
         
         if self.is_admin and self.is_connected :
