@@ -1034,14 +1034,6 @@
                         <input type="text" id="registerMatricule" required>
                     </div>
                     <div class="form-group">
-                        <label for="registerCampus">Campus</label>
-                        <select id="registerCampus" required>
-                            <option value="">Sélectionnez votre campus</option>
-                            <option value="Bonamoussadi">Bonamoussadi</option>
-                            <option value="Bonaberi">Bonabéri</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label for="registerCycle">Cycle</label>
                         <select id="registerCycle" required>
                             <option value="">Sélectionnez votre cycle</option>
@@ -1060,6 +1052,12 @@
                     <div class="form-group">
                         <label for="registerNiveau">Niveau</label>
                         <select id="registerNiveau" required disabled>
+                            <option value="">Sélectionnez d'abord le cycle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerCampus">Campus</label>
+                        <select id="registerCampus" required disabled>
                             <option value="">Sélectionnez d'abord le cycle</option>
                         </select>
                     </div>
@@ -1200,10 +1198,8 @@
                         </div>
                         <div class="form-group">
                             <label for="candidateCampus">Campus</label>
-                            <select id="candidateCampus" required>
-                                <option value="">Sélectionnez votre campus</option>
-                                <option value="Bonamoussadi">Bonamoussadi</option>
-                                <option value="Bonaberi">Bonabéri</option>
+                            <select id="candidateCampus" required disabled>
+                                <option value="">Sélectionnez d'abord le cycle</option>
                             </select>
                         </div>
                     </div>
@@ -1740,16 +1736,20 @@
         async function updateSpecialitesByCycle(cycle) {
             const specialiteSelect = document.getElementById('registerSpecialite');
             const niveauSelect = document.getElementById('registerNiveau');
+            const campusSelect = document.getElementById('registerCampus');
             
             // Vider les options actuelles
             specialiteSelect.innerHTML = '<option value="">Sélectionnez votre spécialité</option>';
             niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            campusSelect.innerHTML = '<option value="">Sélectionnez votre campus</option>';
             specialiteSelect.disabled = true;
             niveauSelect.disabled = true;
+            campusSelect.disabled = true;
 
             if (!cycle) {
                 specialiteSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
                 niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
+                campusSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
                 return;
             }
             
@@ -1774,14 +1774,31 @@
                 
                 // Mettre à jour les niveaux si pas ingenieur
                 if (cycle != 'ingenieur'){
-                    niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
-                    data.niveaux.forEach(niveau => {
-                        const option = document.createElement('option');
-                        option.value = niveau; 
-                        option.textContent = niveau;
-                        niveauSelect.appendChild(option);
-                    });
+                    if(cycle == 'licence'){
+                        niveauSelect.innerHTML = '<option value="">3</option>';
+                    }else{
+                        niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+                        data.niveaux.forEach(niveau => {
+                            const option = document.createElement('option');
+                            option.value = niveau; 
+                            option.textContent = niveau;
+                            niveauSelect.appendChild(option);
+                        });
+                    }
                     niveauSelect.disabled = false;
+                    campusSelect.innerHTML = `
+                        <option value="">Sélectionnez votre campus</option>
+                        <option value="Bonamoussadi">Bonamoussadi</option>
+                        <option value="Bonaberi">Bonaberi</option>
+                    `;
+                    campusSelect.disabled = false;
+
+                }
+                else{
+                    campusSelect.innerHTML = `
+                        <option value="Bonamoussadi">Bonamoussadi</option>
+                    `;
+                    campusSelect.disabled = false;
                 }
                     
             } catch (error) {
@@ -2249,16 +2266,20 @@
         async function updateSpecialitesCandidatesByCycle(cycle) {
             const specialiteSelect = document.getElementById('candidateSpecialite');
             const niveauSelect = document.getElementById('candidateNiveau');
+            const campusSelect = document.getElementById('candidateCampus');
             
             // Vider les options actuelles
             specialiteSelect.innerHTML = '<option value="">Sélectionnez votre spécialité</option>';
             niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            campusSelect.innerHTML = '<option value="">Sélectionnez votre campus</option>';
             specialiteSelect.disabled = true;
             niveauSelect.disabled = true;
+            campusSelect.disabled = true;
 
             if (!cycle) {
                 specialiteSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
                 niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
+                campusSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
                 return;
             }
             
@@ -2283,14 +2304,31 @@
                 
                 // Mettre à jour les niveaux si pas ingenieur
                 if (cycle != 'ingenieur'){
-                    niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
-                    data.niveaux.forEach(niveau => {
-                        const option = document.createElement('option');
-                        option.value = niveau; 
-                        option.textContent = niveau;
-                        niveauSelect.appendChild(option);
-                    });
+                    if(cycle == 'licence'){
+                        niveauSelect.innerHTML = '<option value="">3</option>';
+                    }else{
+                        niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+                        data.niveaux.forEach(niveau => {
+                            const option = document.createElement('option');
+                            option.value = niveau; 
+                            option.textContent = niveau;
+                            niveauSelect.appendChild(option);
+                        });
+                    }
                     niveauSelect.disabled = false;
+                    campusSelect.innerHTML = `
+                        <option value="">Sélectionnez votre campus</option>
+                        <option value="Bonamoussadi">Bonamoussadi</option>
+                        <option value="Bonaberi">Bonaberi</option>
+                    `;
+                    campusSelect.disabled = false;
+
+                }
+                else{
+                    campusSelect.innerHTML = `
+                        <option value="Bonamoussadi">Bonamoussadi</option>
+                    `;
+                    campusSelect.disabled = false;
                 }
                     
             } catch (error) {
