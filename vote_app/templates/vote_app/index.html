@@ -1978,10 +1978,6 @@
                 electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection n\'est pas encore ouverte.</div>';
                 return;
             }
-            if (state.electionStatus == 'active') {
-                electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection est ouverte...</div>';
-                return;
-            }
             if (state.electionStatus == 'closed') {
                 electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection est terminée !</div>';
                 return;
