@@ -25,32 +25,72 @@ class Profile(models.Model):
     # Cycles disponibles
     CYCLE_CHOICES = [
         ('bts', 'BTS'),
+        ('hnd', 'HND'),
         ('licence', 'Licence'),
+        ('bachelor', 'Bachelor of Technology'),
         ('master', 'Master'),
         ('ingenieur', 'Ingénieur'),
     ]
 
     # Spécialités par cycle
     SPECIALITE_BTS = [
-        ('IIA', 'Informatique Industriele et Automatisme'),
-        ('ET', 'ElectroTechnique'),
-        ('RES', 'Réseau et sécurité'),
+        ('BAT', 'Bâtiment'),
+        ('CHAU', 'Chaudronnerie'),
+        ('CM', 'Construction Métallique'),
+        ('ECOM', 'E-Commerce et Marketing Numérique'),
+        ('ET', 'Électrotechnique'),
         ('GL', 'Génie Logiciel'),
+        ('GTO', 'Géomètre Topographe'),
+        ('IWD', 'Infographie et Web Design'),
+        ('IIA', 'Informatique Industrielle et Automatisme'),
+        ('IP', 'Ingénierie Pétrolière'),
+        ('MECATRO', 'Mécatronique'),
+        ('MGA', 'Mines et Géologie Appliquée'),
+        ('RES', 'Réseau et Sécurité'),
+        ('TELECOM', 'Télécommunications'),
+        ('TP', 'Travaux Publics'),
+        ('URBA', 'Urbanisme'),
     ]
 
     SPECIALITE_LICENCE = [
-        ('IIA', 'Informatique Industriele et Automatisme'),
-        ('ET', 'ElectroTechnique'),
-        ('RES', 'Réseau et sécurité'),
+        ('ASR', 'Administration et Securites Reseaux'),
+        ('BAT', 'Bâtiment'),
+        ('GEII', 'Génie Electrique et Informatique Industrielle'),
         ('GL', 'Génie Logiciel'),
+        ('QHSE', 'Qualite-Hygiene-Securite-Environnement'),
+        ('SIR', 'Systeme Informatique et Réseaux'),
+        ('TELECOM', 'Telecommunication et Reseaux'),
+        ('TP', 'Travaux Publics'),
+        ('URBA', 'Urbanisme'),
     ]
 
-    SPECIALITE_MASTER = [
-        ('IIA', 'Informatique Industriele et Automatisme'),
-        ('ET', 'ElectroTechnique'),
-        ('RES', 'Réseau et sécurité'),
-        ('GL', 'Génie Logiciel'),
+    SPECIALITE_MASTER = SPECIALITE_LICENCE
+
+    SPECIALITE_HND = [
+        ('BST', 'Building Science and Technology'),
+        ('CET', 'Civil Engineering and Technology'),
+        ('CE', 'Computer Engineering'),
+        ('CGWD', 'Computer Graphic and web Design'),
+        ('DBM', 'Database Management'),
+        ('EPS', 'Electrical Power Systems'),
+        ('ET', 'Electrotechnics'),
+        ('NWSE', 'Networks and Security'),
+        ('SWE', 'Software Engineering'),
+        ('TELECOM', 'Telecommunications'),
+        ('TOPO', 'Topography'),
     ]
+
+    SPECIALITE_BACHELOR  = [
+        ('CNSM', 'Computer Network and System Maintenance'),
+        ('SWE', 'Software Engineering'),
+        ('EEE', 'Electrical and Electronic Engineering'),
+        ('CE', 'Civil Engineering'),
+    ]
+
+    SPECIALITE_BTS = [
+        
+    ]
+
 
     SPECIALITE_INGENIEUR = [
         ('Prépa', 'Classe Preparatoire'),
@@ -61,7 +101,7 @@ class Profile(models.Model):
         ('GIT', 'Génie Informatique et Télécommunication'),
         ('QHSE', 'Qualité Higiène Sécurité Environnement'),
     ]
-    TIMEOUT = 1 # Temps d'Expiration de chaque session en min
+    TIMEOUT = 3 # Temps d'Expiration de chaque session en min
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     matricule = models.CharField(max_length=100, default='MAT')
@@ -248,8 +288,12 @@ class Profile(models.Model):
     def get_available_specialites(self):
         if self.cycle == 'bts':
             return self.SPECIALITE_BTS
+        elif self.cycle == 'hnd':
+            return self.SPECIALITE_HND
         elif self.cycle == 'licence':
             return self.SPECIALITE_LICENCE
+        elif self.cycle == 'bachelor':
+            return self.SPECIALITE_BACHELOR 
         elif self.cycle == 'master':
             return self.SPECIALITE_MASTER
         elif self.cycle == 'ingenieur':
@@ -267,7 +311,9 @@ class Profile(models.Model):
     def specialite_display(self):
         specialites_dict = dict(
             self.SPECIALITE_BTS + 
+            self.SPECIALITE_HND +
             self.SPECIALITE_LICENCE + 
+            self.SPECIALITE_BACHELOR +
             self.SPECIALITE_MASTER + 
             self.SPECIALITE_INGENIEUR
         )
@@ -288,44 +334,18 @@ class Profile(models.Model):
 class Candidate(models.Model):
 
     # Cycles disponibles
-    CYCLE_CHOICES = [
-        ('bts', 'BTS'),
-        ('licence', 'Licence'),
-        ('master', 'Master'),
-        ('ingenieur', 'Ingénieur'),
-    ]
+    CYCLE_CHOICES = Profile.CYCLE_CHOICES
 
-    # Spécialités (J'ai gardé vos listes, corrigé quelques fautes mineures)
-    SPECIALITE_BTS = [
-        ('IIA', 'Informatique Industrielle et Automatisme'),
-        ('ET', 'ElectroTechnique'),
-        ('RES', 'Réseau et sécurité'),
-        ('GL', 'Génie Logiciel'),
-    ]
+    # Spécialités
+    SPECIALITE_BTS = Profile.SPECIALITE_BTS
+    SPECIALITE_HND = Profile.SPECIALITE_HND
 
-    SPECIALITE_LICENCE = [
-        ('IIA', 'Informatique Industrielle et Automatisme'),
-        ('ET', 'ElectroTechnique'),
-        ('RES', 'Réseau et sécurité'),
-        ('GL', 'Génie Logiciel'),
-    ]
+    SPECIALITE_LICENCE = Profile.SPECIALITE_LICENCE
+    SPECIALITE_BACHELOR = Profile.SPECIALITE_BACHELOR
 
-    SPECIALITE_MASTER = [
-        ('IIA', 'Informatique Industrielle et Automatisme'),
-        ('ET', 'ElectroTechnique'),
-        ('RES', 'Réseau et sécurité'),
-        ('GL', 'Génie Logiciel'),
-    ]
+    SPECIALITE_MASTER = Profile.SPECIALITE_MASTER
 
-    SPECIALITE_INGENIEUR = [
-        ('Prepa', 'Classe Préparatoire'),
-        ('GCE', 'Génie Civil'),
-        ('GESI', 'Génie Électrique et Systèmes Intelligents'),
-        ('GM', 'Génie Mécanique'),
-        ('GMA', 'Génie Mécatronique et Automobile'), # Corrigé
-        ('GIT', 'Génie Informatique et Télécommunication'),
-        ('QHSE', 'Qualité Hygiène Sécurité Environnement'), # Corrigé
-    ]
+    SPECIALITE_INGENIEUR = Profile.SPECIALITE_INGENIEUR
 
     # Informations personnelles
     nom = models.CharField(max_length=100)
@@ -486,7 +506,9 @@ class Candidate(models.Model):
         # Concaténation de toutes les listes pour la recherche
         all_specs = (
             self.SPECIALITE_BTS + 
+            self.SPECIALITE_HND +
             self.SPECIALITE_LICENCE + 
+            self.SPECIALITE_BACHELOR +
             self.SPECIALITE_MASTER + 
             self.SPECIALITE_INGENIEUR
         )

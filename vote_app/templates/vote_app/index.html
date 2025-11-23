@@ -1038,7 +1038,9 @@
                         <select id="registerCycle" required>
                             <option value="" disabled selected>Sélectionnez votre cycle</option>
                             <option value="bts">BTS</option>
+                            <option value="hnd">HND</option>
                             <option value="licence">Licence</option>
+                            <option value="bachelor">Bachelor of Technology</option>
                             <option value="master">Master</option>
                             <option value="ingenieur">Ingénieur</option>
                         </select>
@@ -1058,7 +1060,7 @@
                     <div class="form-group">
                         <label for="registerCampus">Campus</label>
                         <select id="registerCampus" required disabled>
-                            <option value="">Sélectionnez d'abord le cycle</option>
+                            <option value="" disabled selected>Sélectionnez d'abord le cycle</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1091,7 +1093,7 @@
                 <h2>Bienvenue !</h2>
                 <div class="message message-warning">
                     <p>Votre inscription est en attente de validation par un administrateur.</p>
-                    <p>Veuillez patienter. Vous serez notifié lorsque votre compte sera activé.</p>
+                    <p>Veuillez patienter. Vous serez notifié(e) lorsque votre compte sera activé.</p>
                 </div>
                 <button id="logoutBtnPending" class="btn">Se déconnecter</button>
             </div>
@@ -1129,7 +1131,7 @@
             <div class="card text-center">
                 <h2 id="studentWelcomeVotingMsg"> </h2>
                 <div class="message message-success" id="studentViewResults">
-                    <p>Votre voix a été enregistrée avec succès.</p>
+                    <p>Votre vote a été enregistrée avec succès.</p>
                     <p>Les résultats seront annoncés à la fin de la période de vote.</p>
                 </div>
                 <button id="logoutBtnVoted" class="btn">Se déconnecter</button>
@@ -1179,11 +1181,13 @@
                     </div>
                     <div class="candidate-form-grid">
                         <div class="form-group">
-                            <label for="candidateCycle">cycle</label>
+                            <label for="candidateCycle">Cycle</label>
                             <select id="candidateCycle" required>
-                                <option value="" disabled selected>Sélectionnez le cycle</option>
+                                <option value="" disabled selected>Sélectionnez votre cycle</option>
                                 <option value="bts">BTS</option>
+                                <option value="hnd">HND</option>
                                 <option value="licence">Licence</option>
+                                <option value="bachelor">Bachelor of Technology</option>
                                 <option value="master">Master</option>
                                 <option value="ingenieur">Ingénieur</option>
                             </select>
@@ -1199,13 +1203,13 @@
                         <div class="form-group">
                             <label for="candidateNiveau" >Niveau</label>
                             <select id="candidateNiveau" required disabled>
-                                <option value="">Sélectionnez d'abord le cycle</option>
+                                <option value="" disabled selected>Sélectionnez d'abord le cycle</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="candidateCampus">Campus</label>
                             <select id="candidateCampus" required disabled>
-                                <option value="">Sélectionnez d'abord le cycle</option>
+                                <option value="" disabled selected>Sélectionnez d'abord le cycle</option>
                             </select>
                         </div>
                     </div>
@@ -1530,7 +1534,12 @@
                     // Juste mettre à jour le message de bienvenue si nécessaire
                     if (state.currentUser) {
                         studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
-                        secondParagraph.textContent = 'Vous pouvez à présent consulter les resultat des votes';
+                        if(state.electionStatus == 'active'){ 
+                            secondParagraph.textContent = 'Les résultats seront annoncés à la fin de la période de vote.';
+                        }
+                        else if(state.electionStatus == 'closed'){ 
+                            secondParagraph.textContent = 'Vous pouvez à présent consulter les resultat des votes';
+                        }
                     }
                     renderStudentVoteView();
                     renderResults();
@@ -1754,17 +1763,17 @@
             const campusSelect = document.getElementById('registerCampus');
             
             // Vider les options actuelles
-            specialiteSelect.innerHTML = '<option value="">Sélectionnez votre spécialité</option>';
-            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
-            campusSelect.innerHTML = '<option value="">Sélectionnez votre campus</option>';
+            specialiteSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre spécialité</option>';
+            niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre niveau</option>';
+            campusSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre campus</option>';
             specialiteSelect.disabled = true;
             niveauSelect.disabled = true;
             campusSelect.disabled = true;
 
             if (!cycle) {
-                specialiteSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
-                niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
-                campusSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
+                specialiteSelect.innerHTML = '<option value="" disabled selected>Sélectionnez d\'abord le cycle</option>';
+                niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez d\'abord le cycle</option>';
+                campusSelect.innerHTML = '<option value="" disabled selected>Sélectionnez d\'abord le cycle</option>';
                 return;
             }
             
@@ -1778,7 +1787,7 @@
                 }
                 
                 // Mettre à jour les spécialités
-                specialiteSelect.innerHTML = '<option value="">Sélectionnez votre spécialité</option>';
+                specialiteSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre spécialité</option>';
                 data.specialites.forEach(specialite => {
                     const option = document.createElement('option');
                     option.value = specialite[0];  // La valeur (ex: 'informatique_bts')
@@ -1792,7 +1801,7 @@
                     if(cycle == 'licence'){
                         niveauSelect.innerHTML = '<option value="">3</option>';
                     }else{
-                        niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+                        niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre niveau</option>';
                         data.niveaux.forEach(niveau => {
                             const option = document.createElement('option');
                             option.value = niveau; 
@@ -1802,7 +1811,7 @@
                     }
                     niveauSelect.disabled = false;
                     campusSelect.innerHTML = `
-                        <option value="">Sélectionnez votre campus</option>
+                        <option value="" disabled selected>Sélectionnez votre campus</option>
                         <option value="Bonamoussadi">Bonamoussadi</option>
                         <option value="Bonaberi">Bonaberi</option>
                     `;
@@ -1818,24 +1827,24 @@
                     
             } catch (error) {
                 console.error('Erreur:', error);
-                specialiteSelect.innerHTML = '<option value="">Erreur de chargement</option>';
-                niveauSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                specialiteSelect.innerHTML = '<option value="" disabled selected>Erreur de chargement</option>';
+                niveauSelect.innerHTML = '<option value="" disabled selected>Erreur de chargement</option>';
             }
         }
         function updateNiveauBySpecialityIng(speciality) {
             const niveauSelect = document.getElementById('registerNiveau');
             let niveauxList  = [];
             // Vider les options actuelles
-            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre niveau</option>';
             niveauSelect.disabled = true;
             if (!speciality) {
-                niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord la specialité</option>';
+                niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez d\'abord la specialité</option>';
                 return;
             }
             if (speciality == 'Prépa') { niveauxList  = [1, 2] }
             else { niveauxList  = [3, 4, 5] }
             // Mettre à jour les spécialités
-            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre niveau</option>';
             niveauxList.forEach(niveau => {
                 const option = document.createElement('option');
                 option.value = niveau;  // La valeur (ex: 'informatique_bts')
@@ -2335,17 +2344,17 @@
             const campusSelect = document.getElementById('candidateCampus');
             
             // Vider les options actuelles
-            specialiteSelect.innerHTML = '<option value="">Sélectionnez votre spécialité</option>';
-            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
-            campusSelect.innerHTML = '<option value="">Sélectionnez votre campus</option>';
+            specialiteSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre spécialité</option>';
+            niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre niveau</option>';
+            campusSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre campus</option>';
             specialiteSelect.disabled = true;
             niveauSelect.disabled = true;
             campusSelect.disabled = true;
 
             if (!cycle) {
-                specialiteSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
-                niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
-                campusSelect.innerHTML = '<option value="">Sélectionnez d\'abord le cycle</option>';
+                specialiteSelect.innerHTML = '<option value="" disabled selected>Sélectionnez d\'abord le cycle</option>';
+                niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez d\'abord le cycle</option>';
+                campusSelect.innerHTML = '<option value="" disabled selected>Sélectionnez d\'abord le cycle</option>';
                 return;
             }
             
@@ -2359,7 +2368,7 @@
                 }
                 
                 // Mettre à jour les spécialités
-                specialiteSelect.innerHTML = '<option value="">Sélectionnez votre spécialité</option>';
+                specialiteSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre spécialité</option>';
                 data.specialites.forEach(specialite => {
                     const option = document.createElement('option');
                     option.value = specialite[0];  // La valeur (ex: 'informatique_bts')
@@ -2371,9 +2380,9 @@
                 // Mettre à jour les niveaux si pas ingenieur
                 if (cycle != 'ingenieur'){
                     if(cycle == 'licence'){
-                        niveauSelect.innerHTML = '<option value="">3</option>';
+                        niveauSelect.innerHTML = '<option value="3">3</option>';
                     }else{
-                        niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+                        niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre niveau</option>';
                         data.niveaux.forEach(niveau => {
                             const option = document.createElement('option');
                             option.value = niveau; 
@@ -2383,7 +2392,7 @@
                     }
                     niveauSelect.disabled = false;
                     campusSelect.innerHTML = `
-                        <option value="">Sélectionnez votre campus</option>
+                        <option value="" disabled selected>Sélectionnez votre campus</option>
                         <option value="Bonamoussadi">Bonamoussadi</option>
                         <option value="Bonaberi">Bonaberi</option>
                     `;
@@ -2399,25 +2408,25 @@
                     
             } catch (error) {
                 console.error('Erreur:', error);
-                specialiteSelect.innerHTML = '<option value="">Erreur de chargement</option>';
-                niveauSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                specialiteSelect.innerHTML = '<option value="" disabled selected>Erreur de chargement</option>';
+                niveauSelect.innerHTML = '<option value="" disabled selected>Erreur de chargement</option>';
             }
         }
         function updateNiveauCandidatesBySpecialityIng(speciality) {
             const niveauSelect = document.getElementById('candidateNiveau');
             let niveauxList  = [];
             // Vider les options actuelles
-            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre niveau</option>';
             niveauSelect.disabled = true;
 
             if (!speciality) {
-                niveauSelect.innerHTML = '<option value="">Sélectionnez d\'abord la specialité</option>';
+                niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez d\'abord la specialité</option>';
                 return;
             }
             if (speciality == 'Prépa') { niveauxList  = [1, 2] }
             else { niveauxList  = [3, 4, 5] }
             // Mettre à jour les spécialités
-            niveauSelect.innerHTML = '<option value="">Sélectionnez votre niveau</option>';
+            niveauSelect.innerHTML = '<option value="" disabled selected>Sélectionnez votre niveau</option>';
             niveauxList.forEach(niveau => {
                 const option = document.createElement('option');
                 option.value = niveau;  // La valeur (ex: 'informatique_bts')
@@ -2706,7 +2715,7 @@
 
             console.log("viewId !=  'adminDashboardView' : ", viewId !=  'adminDashboardView');
             if (state.electionStatus === 'active' && viewId != 'adminDashboardView') {
-                resultsContainerEtudiant.innerHTML = '<div class="message message-info">Les election sont encore en cours...</div>';
+                resultsContainerEtudiant.innerHTML = '<div class="message message-info">L\'élection est encore en cours...</div>';
                 console.log("state.electionStatus === 'active' && viewId != 'adminDashboardView", viewId);
                 //return;
             }
@@ -2793,8 +2802,8 @@
                         <div>
                             <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
                             <strong>${user.cycle_display} - ${user.specialite} ${user.niveau} - ${user.campus}</strong><br>
-                            <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validé'}</span>
-                            ${user.status === 'pending' ? ' - ❌ Ne pas voter': user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
+                            <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validée'}</span>
+                            ${user.status === 'pending' ? ' - ❌ Ne peut pas voter': user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
                         </div>
                     </div>
                     
@@ -2804,7 +2813,7 @@
                 if(user.status === 'validated' ){
                     userDiv.innerHTML += `
                         <button class="btn btn-danger" data-user-id="${user.id}">
-                            <i class="fas fa-times"></i> Desactiver
+                            <i class="fas fa-times"></i> Désactiver
                         </button>
                     `;
                 }

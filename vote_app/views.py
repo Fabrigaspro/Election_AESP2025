@@ -21,7 +21,9 @@ def get_specialites_by_cycle(cycle):
     """Retourne les spécialités disponibles pour un cycle donné"""
     specialites = {
         'bts': Profile.SPECIALITE_BTS,
+        'hnd': Profile.SPECIALITE_HND,
         'licence': Profile.SPECIALITE_LICENCE,
+        'bachelor': Profile.SPECIALITE_BACHELOR,
         'master': Profile.SPECIALITE_MASTER,
         'ingenieur': Profile.SPECIALITE_INGENIEUR,
     }
@@ -31,7 +33,9 @@ def get_niveaux_by_cycle(cycle):
     """Retourne les niveaux disponibles pour un cycle donné"""
     niveaux = {
         'bts': [1, 2],
+        'hnd': [1, 2],
         'licence': [3],
+        'bachelor': [3],
         'master': [4, 5],
         'ingenieur': [1, 2, 3, 4, 5],
     }
