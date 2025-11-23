@@ -65,6 +65,7 @@ class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     matricule = models.CharField(max_length=100, default='MAT')
+    campus = models.CharField(max_length=100 , default='Bonamoussadi')
     cycle = models.CharField(max_length=100, choices=CYCLE_CHOICES, default='bts')
     specialite = models.CharField(max_length=100, blank=True, null=True)
     niveau = models.IntegerField(blank=True)
@@ -335,6 +336,7 @@ class Candidate(models.Model):
     cycle = models.CharField(max_length=100, choices=CYCLE_CHOICES, default='bts')
     specialite = models.CharField(max_length=100)
     niveau = models.CharField(max_length=50)
+    campus = models.CharField(max_length=100 , default='Bonamoussadi')
     
     # Campagne
     slogan = models.TextField()

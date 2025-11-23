@@ -1034,6 +1034,14 @@
                         <input type="text" id="registerMatricule" required>
                     </div>
                     <div class="form-group">
+                        <label for="registerCampus">Campus</label>
+                        <select id="registerCampus" required>
+                            <option value="">Sélectionnez votre campus</option>
+                            <option value="Bonamoussadi">Bonamoussadi</option>
+                            <option value="Bonaberi">Bonabéri</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="registerCycle">Cycle</label>
                         <select id="registerCycle" required>
                             <option value="">Sélectionnez votre cycle</option>
@@ -1191,14 +1199,29 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="candidateSlogan">Slogan de campagne</label>
-                            <input type="text" id="candidateSlogan" required placeholder="Ex: L'avenir ensemble !">
+                            <label for="candidateCampus">Campus</label>
+                            <select id="candidateCampus" required>
+                                <option value="">Sélectionnez votre campus</option>
+                                <option value="Bonamoussadi">Bonamoussadi</option>
+                                <option value="Bonaberi">Bonabéri</option>
+                            </select>
                         </div>
                     </div>
                     <div class="candidate-form-grid">
                         <div class="form-group">
                             <label for="candidateBureau">Nom du Bureau</label>
                             <input type="text" id="candidateBureau" required placeholder="Ex: Bureau du renouveau">
+                        </div>
+                        <div class="form-group">
+                            <label for="candidateSlogan">Slogan de campagne</label>
+                            <input type="text" id="candidateSlogan" required placeholder="Ex: L'avenir ensemble !">
+                        </div>
+                    </div>
+                    <div class="candidate-form-grid">
+                        <div class="form-group">
+                            <label for="candidateProgramme_pdf">Programme de campagne PDF</label>
+                            <input type="file" id="candidateProgramme_pdf" name="candidateProgramme_pdf" 
+                                   accept=".pdf" class="form-control" required>
                         </div>
                         <div class="form-group">
                             <label for="candidateCouleur">Couleur du Bureau</label>
@@ -1209,11 +1232,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="candidateProgramme_pdf">Programme de campagne PDF</label>
-                        <input type="file" id="candidateProgramme_pdf" name="candidateProgramme_pdf" 
-                               accept=".pdf" class="form-control" required>
-                    </div>
+                    
                     <div class="form-group">
                         <label for="candidatePhoto">Photo du candidat</label>
                         <input type="file" id="candidatePhoto" accept="image/*" required>
@@ -1826,6 +1845,7 @@
             formData.append('nom', document.getElementById('registerNom').value);
             formData.append('prenom', document.getElementById('registerPrenom').value);
             formData.append('matricule', document.getElementById('registerMatricule').value);
+            formData.append('campus', document.getElementById('registerCampus').value);
             formData.append('cycle', document.getElementById('registerCycle').value);
             formData.append('specialite', document.getElementById('registerSpecialite').value);
             formData.append('niveau', document.getElementById('registerNiveau').value);
@@ -2159,7 +2179,7 @@
                     </a>
                     <div>
                         <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                        <strong>${user.cycle}-${user.specialite} ${user.niveau}</strong><br>
+                        <strong>${user.cycle}-${user.specialite} ${user.niveau} - ${user.campus}</strong><br>
                         <a href="${user.recu_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
                             <i class="fas fa-file-invoice"></i> Voir le reçu
                         </a>
@@ -2329,6 +2349,7 @@
             const cycle = document.getElementById('candidateCycle').value;
             const specialite = document.getElementById('candidateSpecialite').value.trim();
             const niveau = document.getElementById('candidateNiveau').value;
+            const campus = document.getElementById('candidateCampus').value.trim();
             const slogan = document.getElementById('candidateSlogan').value.trim();
             const NomBureau = document.getElementById('candidateBureau').value.trim();
             const couleur = document.getElementById('candidateCouleur').value;
@@ -2337,7 +2358,7 @@
             console.log("bureau : ", NomBureau)
             console.log("bureau : ", NomBureau)
 
-            if (!nom || !prenom || !cycle || !specialite || !niveau || !slogan || !NomBureau || !couleur) {
+            if (!nom || !prenom || !cycle || !specialite || !niveau || !campus || !slogan || !NomBureau || !couleur) {
                 alert('Veuillez remplir tous les champs obligatoires.');
                 return;
             }
@@ -2348,6 +2369,7 @@
             formData.append('cycle', cycle);
             formData.append('specialite', specialite);
             formData.append('niveau', niveau);
+            formData.append('campus', campus);
             formData.append('bureau_name', NomBureau);
             formData.append('slogan', slogan);
             formData.append('bureau_color', couleur);
@@ -2397,7 +2419,7 @@
                         </a>
                         <div style="flex-grow: 1;">
                             <strong>${candidate.prenom} ${candidate.nom}</strong><br>
-                            <small>${candidate.cycle_display} - ${candidate.specialite} ${candidate.niveau}</small><br>
+                            <small>${candidate.cycle_display} - ${candidate.specialite} ${candidate.niveau} - ${candidate.campus}</small><br>
                             <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
                                 <div style="width: 16px; height: 16px; border-radius: 50%; background: ${bureauColor}; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
                                 <span style="font-size: 0.85rem; color: #666;">${bureauName}</span>
@@ -2624,7 +2646,7 @@
                         </a>
                         <div>
                             <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
-                            <strong>${user.cycle_display} - ${user.specialite} ${user.niveau}</strong><br>
+                            <strong>${user.cycle_display} - ${user.specialite} ${user.niveau} - ${user.campus}</strong><br>
                             <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validé'}</span>
                             ${user.status === 'pending' ? ' - ❌ Ne pas voter': user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
                         </div>

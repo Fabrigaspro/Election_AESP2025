@@ -78,6 +78,7 @@ def user_to_dict(user):
         'nom': user.last_name,
         'prenom': user.first_name,
         'matricule': user.username,
+        'campus': user.profile.campus,
         'cycle': user.profile.cycle,
         'cycle_display': user.profile.get_cycle_display(),
         'specialite': user.profile.specialite,
@@ -111,6 +112,7 @@ def register_view(request):
         # Crée le profil associé
         Profile.objects.create(
             user=user,
+            campus=data['campus'],
             cycle=data['cycle'],
             specialite=data['specialite'],
             niveau=data['niveau'],
@@ -222,6 +224,7 @@ def dashboard_data_view(request):
             'cycle': candidate.cycle,
             'specialite': candidate.specialite,
             'niveau': candidate.niveau,
+            'campus': candidate.campus,
             'slogan': candidate.slogan,
             'votes': candidate.votes,
             'bureau_color': candidate.bureau_color,
@@ -303,7 +306,7 @@ def reset_election_view(request): # Redémarrage de l'élection
             
             # Réinitialiser le statut "a voté" pour tous les utilisateurs
             Profile.objects.all().update(has_voted=False)
-            
+
             Vote.objects.all().delete()
             
             # Remettre l'élection en statut "pending"
@@ -362,6 +365,7 @@ def manage_candidates_view(request):
                 cycle = request.POST.get('cycle')
                 specialite = request.POST.get('specialite')
                 niveau = request.POST.get('niveau')
+                campus = request.POST.get('campus')
                 slogan = request.POST.get('slogan')
                 photo = request.FILES.get('photo')
                 programmePDF = request.FILES.get('programmePDF')
@@ -386,6 +390,7 @@ def manage_candidates_view(request):
                     cycle=cycle,
                     specialite=specialite,
                     niveau=niveau,
+                    campus=campus,
                     slogan=slogan,
                     photo_url = photo,
                     bureau_name=bureau_nom,
