@@ -6,10 +6,15 @@ class SessionManagementMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        print("*"*30)
+        print("*"*30)
+        print("request.user.is_authenticated", request.user.is_authenticated)
+        print("*"*30)
+        print("*"*30)
         if request.user.is_authenticated:
             try:
                 profile = Profile.objects.get(user=request.user)
-                profile.is_connected = True
+                profile.is_connected = True 
                 profile.save()
                 print("profile.is_admin : ", profile.is_admin)
                 # Vérifier la validité de la session

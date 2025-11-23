@@ -58,6 +58,7 @@ def get_cycle_options(request):
             'niveaux12': [1, 2],
             'niveaux345': [3, 4, 5]
         })
+
 # Vue pour servir la page HTML principale
 def index(request):
     return render(request, 'vote_app/index.html')
@@ -69,6 +70,7 @@ def index(request):
 def is_user_admin(user):
     return user.is_authenticated and hasattr(user, 'profile') and user.profile.is_admin
 
+# Convertit un objet User/Profile en dictionnaire pour la réponse JSON
 def user_to_dict(user):
     """Convertit un objet User/Profile en dictionnaire pour la réponse JSON."""
     if not hasattr(user, 'profile') and not is_user_admin(user):
@@ -91,10 +93,10 @@ def user_to_dict(user):
     }
 
 # ===============================================
-# VUES API
+# VUES API  electionStatusMessage
 # ===============================================
 
-@csrf_exempt # Pour la simplicité, en production, utilisez une gestion CSRF appropriée
+@csrf_exempt # Enregistrement d'un nouvel étudiant
 def register_view(request):
     if request.method == 'POST':
         data = request.POST
@@ -123,7 +125,7 @@ def register_view(request):
         return JsonResponse({'success': 'Inscription réussie ! Votre compte est en attente de validation.'})
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
-@csrf_exempt
+@csrf_exempt # Connection d'un utilisateur
 def login_view(request):
     print("Connexion en cours demarrée.......")
     if request.method == 'POST':
@@ -180,7 +182,7 @@ def login_view(request):
     
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
-login_required
+login_required # Deconnection d'un utilisateur
 def logout_view(request):
     if request.user.is_authenticated:
         try:
@@ -206,7 +208,7 @@ def check_session_view(request):
     """Vérifie si un utilisateur est connecté et renvoie ses informations."""
     return JsonResponse(user_to_dict(request.user))
 
-@login_required
+@login_required # Collecte des données à charger au demarrage de l'Application
 def dashboard_data_view(request):
     """Renvoie toutes les données nécessaires pour le tableau de bord."""
     election = ElectionState.load()
@@ -257,7 +259,7 @@ def dashboard_data_view(request):
     })
 
 @csrf_exempt
-@login_required
+@login_required # Processus d'enregistrement d'un vote
 def vote_view(request):
     if request.method == 'POST':
         user_profile = request.user.profile
@@ -293,39 +295,11 @@ def vote_view(request):
             return JsonResponse({'error': 'Candidat non trouvé.'}, status=404)
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
-@csrf_exempt
-@login_required
-def reset_election_view(request): # Redémarrage de l'élection
-    if not is_user_admin(request.user):
-        return JsonResponse({'error': 'Accès refusé.'}, status=403)
-    
-    if request.method == 'POST':
-        try:
-            # Réinitialiser tous les votes
-            Candidate.objects.all().update(votes=0)
-            
-            # Réinitialiser le statut "a voté" pour tous les utilisateurs
-            Profile.objects.all().update(has_voted=False)
-
-            Vote.objects.all().delete()
-            
-            # Remettre l'élection en statut "pending"
-            election = ElectionState.objects.first()
-            election.status = 'pending'
-            election.save()
-            
-            return JsonResponse({'success': 'Élection réinitialisée avec succès'})
-            
-        except Exception as e:
-            return JsonResponse({'error': f'Erreur lors de la réinitialisation: {str(e)}'}, status=500)
-    
-    return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
-
 # ===============================================
 # VUES API - ADMINISTRATION
 # ===============================================
 @csrf_exempt
-@login_required
+@login_required  # Modifier le statut d'un etudiant et le supprimer aussi
 def manage_user_status_view(request, user_id):
     if not is_user_admin(request.user):
         return JsonResponse({'error': 'Accès refusé.'}, status=403)
@@ -352,7 +326,7 @@ def manage_user_status_view(request, user_id):
     
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
-@login_required
+@login_required  # Creation d'un nouveau candidat
 def manage_candidates_view(request):
     print("manage_candidates_view")
     if not is_user_admin(request.user):
@@ -404,7 +378,7 @@ def manage_candidates_view(request):
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
 @csrf_exempt
-@login_required
+@login_required  # Suppression d'un nouveau candidat
 def manage_candidate_detail_view(request, candidate_id):
     if not is_user_admin(request.user):
         return JsonResponse({'error': 'Accès refusé.'}, status=403)
@@ -421,7 +395,7 @@ def manage_candidate_detail_view(request, candidate_id):
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
 @csrf_exempt
-@login_required
+@login_required # Activer ou desactiver l'election
 def manage_election_view(request):
     if not is_user_admin(request.user):
         return JsonResponse({'error': 'Accès refusé.'}, status=403)
@@ -437,3 +411,33 @@ def manage_election_view(request):
         return JsonResponse({'error': 'Statut invalide.'}, status=400)
         
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+
+@csrf_exempt
+@login_required  # Réinitialisation de l'élection
+def reset_election_view(request):
+    if not is_user_admin(request.user):
+        return JsonResponse({'error': 'Accès refusé.'}, status=403)
+    
+    if request.method == 'POST':
+        try:
+            # Réinitialiser tous les votes
+            Candidate.objects.all().update(votes=0)
+            
+            # Réinitialiser le statut "a voté" pour tous les utilisateurs
+            Profile.objects.all().update(has_voted=False)
+
+            Vote.objects.all().delete()
+            
+            # Remettre l'élection en statut "pending"
+            election = ElectionState.objects.first()
+            election.status = 'pending'
+            election.save()
+            
+            return JsonResponse({'success': 'Élection réinitialisée avec succès'})
+            
+        except Exception as e:
+            return JsonResponse({'error': f'Erreur lors de la réinitialisation: {str(e)}'}, status=500)
+    
+    return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+
+

@@ -1036,7 +1036,7 @@
                     <div class="form-group">
                         <label for="registerCycle">Cycle</label>
                         <select id="registerCycle" required>
-                            <option value="">Sélectionnez votre cycle</option>
+                            <option value="" disabled selected>Sélectionnez votre cycle</option>
                             <option value="bts">BTS</option>
                             <option value="licence">Licence</option>
                             <option value="master">Master</option>
@@ -1046,13 +1046,13 @@
                     <div class="form-group">
                         <label for="registerSpecialite">Spécialité</label>
                         <select id="registerSpecialite" required disabled>
-                            <option value="">Sélectionnez d'abord le cycle</option>
+                            <option value="" disabled selected>Sélectionnez d'abord le cycle</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="registerNiveau">Niveau</label>
                         <select id="registerNiveau" required disabled>
-                            <option value="">Sélectionnez d'abord le cycle</option>
+                            <option value="" disabled selected>Sélectionnez d'abord le cycle</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1097,7 +1097,7 @@
             </div>
         </div>
 
-        <!-- Vue Étudiant - Vote AMÉLIORÉE -->
+        <!-- Vue Étudiant - Vote -->
         <div id="studentVoteView" class="view">
             <div class="dashboard-header">
                 <h2 id="studentWelcomeMsg"></h2>
@@ -1128,11 +1128,17 @@
         <div id="studentVotedView" class="view">
             <div class="card text-center">
                 <h2 id="studentWelcomeVotingMsg"> </h2>
-                <div class="message message-success">
+                <div class="message message-success" id="studentViewResults">
                     <p>Votre voix a été enregistrée avec succès.</p>
                     <p>Les résultats seront annoncés à la fin de la période de vote.</p>
                 </div>
                 <button id="logoutBtnVoted" class="btn">Se déconnecter</button>
+            </div>
+            <div class="card">
+                <h3>Résultats de l'élection</h3>
+                <div id="resultsContainerEtudiant">
+                    <div class="message message-info"></div>
+                </div>
             </div>
         </div>
 
@@ -1175,7 +1181,7 @@
                         <div class="form-group">
                             <label for="candidateCycle">cycle</label>
                             <select id="candidateCycle" required>
-                                <option value="">Sélectionnez le cycle</option>
+                                <option value="" disabled selected>Sélectionnez le cycle</option>
                                 <option value="bts">BTS</option>
                                 <option value="licence">Licence</option>
                                 <option value="master">Master</option>
@@ -1185,13 +1191,13 @@
                         <div class="form-group">
                             <label for="candidateSpecialite">Spécialité</label>
                             <select id="candidateSpecialite" required disabled>
-                                <option value="">Sélectionnez d'abord le cycle</option>
+                                <option value="" disabled selected>Sélectionnez d'abord le cycle</option>
                             </select>
                         </div>
                     </div>
                     <div class="candidate-form-grid"> 
                         <div class="form-group">
-                            <label for="candidateNiveau">Niveau</label>
+                            <label for="candidateNiveau" >Niveau</label>
                             <select id="candidateNiveau" required disabled>
                                 <option value="">Sélectionnez d'abord le cycle</option>
                             </select>
@@ -1272,7 +1278,7 @@
             <!-- Contenu Admin: Résultats -->
             <div id="resultsContent" class="admin-content card">
                 <h3>Résultats de l'élection</h3>
-                <div id="resultsContainer"></div>
+                <div id="resultsContainer">SSKSKSK</div>
             </div>
 
             <!-- Contenu Admin: Gestion des utilisateurs -->
@@ -1316,6 +1322,8 @@
         const logoutButtons = document.querySelectorAll('#logoutBtnPending, #logoutBtnVote, #logoutBtnVoted, #logoutBtnAdmin');
         const studentWelcomeMsg = document.getElementById('studentWelcomeMsg');
         const studentWelcomeVotingMsg = document.getElementById('studentWelcomeVotingMsg');
+        const studentViewResults = document.getElementById('studentViewResults');
+        const secondParagraph = studentViewResults.querySelector('p:nth-child(2)');
         const candidatesForVote = document.getElementById('candidatesForVote');
         const electionStatusMessage = document.getElementById('electionStatusMessage');
         const adminNavButtons = document.querySelectorAll('.admin-nav-btn');
@@ -1327,6 +1335,7 @@
         const startElectionBtn = document.getElementById('startElectionBtn');
         const stopElectionBtn = document.getElementById('stopElectionBtn');
         const resultsContainer = document.getElementById('resultsContainer');
+        const resultsContainerEtudiant = document.getElementById('resultsContainerEtudiant');
         const usersList = document.getElementById('usersList');
         const photoPreview = document.getElementById('photoPreview');
         const recuPreview = document.getElementById('recuPreview');
@@ -1480,6 +1489,8 @@
             }
             
             // Vérifier le statut de l'élection
+            console.log("// Vérifier le statut de l'élection")
+            console.log("state.electionStatus !== newData.election_status : ", state.electionStatus !== newData.election_status)
             if (state.electionStatus !== newData.election_status) {
                 return true;
             }
@@ -1512,13 +1523,17 @@
                     
                 case 'studentVoteView':
                     renderStudentVoteView();
+                    renderResults();
                     break;
                     
                 case 'studentVotedView':
                     // Juste mettre à jour le message de bienvenue si nécessaire
                     if (state.currentUser) {
                         studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
+                        secondParagraph.textContent = 'Vous pouvez à présent consulter les resultat des votes';
                     }
+                    renderStudentVoteView();
+                    renderResults();
                     break;
                     
                 case 'studentPendingView':
@@ -1973,11 +1988,11 @@
             console.log("________________________________")
         
             if (state.currentUser.is_admin) {
+                console.log("state.currentUser.is_admin")
                 showView('adminDashboardView');
                 renderAdminDashboard();
                 // Démarrer le rafraîchissement automatique pour l'admin
                 startAutoRefresh();
-                console.log("state.currentUser.is_admin")
             } else {
                 if (state.currentUser.status === 'pending') {
                     showView('studentPendingView');
@@ -1988,6 +2003,11 @@
                     if (state.currentUser.has_voted) {
                         studentWelcomeVotingMsg.textContent = `Merci étudiant(e) ${state.currentUser.prenom} ${state.currentUser.nom} d'avoir voté !`;
                         showView('studentVotedView');
+                        if (state.electionStatus == 'closed'){
+                            secondParagraph.textContent = 'Vous pouvez à présent consulter les resultat des votes';
+                        }
+                        renderResults();
+                        console.log("state.currentUser.has_voted")
                         // Rafraîchissement limité pour les utilisateurs ayant voté
                         startAutoRefresh();
                         console.log("state.currentUser.has_voted")
@@ -1998,6 +2018,7 @@
                         startAutoRefresh();
                         console.log("state.currentUser.has_voted == False")
                     }
+                    
                 }
             }
         }
@@ -2008,15 +2029,58 @@
         function renderStudentVoteView() {
             studentWelcomeMsg.textContent = `Bienvenue, ${state.currentUser.prenom} ${state.currentUser.nom}`;
             candidatesForVote.innerHTML = '';
+            electionStatusMessage.innerHTML = '';
+
             selectedCandidateId = null;
             selectedCandidateInfo.style.display = 'none';
-            console.log(state.electionStatus)
+            console.log('state.electionStatus ::::', state.electionStatus)
             if (state.electionStatus == 'pending') {
                 electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection n\'est pas encore ouverte.</div>';
                 return;
             }
             if (state.electionStatus == 'closed') {
-                electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection est terminée !</div>';
+                electionStatusMessage.innerHTML = '<div class="message message-warning">L\'élection est terminée. Voici les résultats compilés: </div>';
+                console.log('state.candidates.length ::::', state.candidates.length)
+                if (state.candidates.length === 0) {
+                    electionStatusMessage.innerHTML = '<div class="message message-info">Aucun candidat enregistré.</div>';
+                    return;
+                }
+    
+                const totalVotes = state.candidates.reduce((sum, candidate) => sum + candidate.votes, 0);
+                console.log('totalVotes ::::', totalVotes)
+                
+                state.candidates.forEach(candidate => {
+                    const percentage = totalVotes > 0 ? (candidate.votes / totalVotes) * 100 : 0;
+                    const candidateDiv = document.createElement('div');
+                    candidateDiv.className = 'list-item';
+                    candidateDiv.innerHTML = `
+                        <div style="flex-grow: 1;">
+                            <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+                                <a href="${candidate.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                                    <img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(candidate.prenom + ' ' + candidate.nom)}" 
+                                    crossorigin="anonymous"
+                                    alt="Photo de ${candidate.prenom} ${candidate.nom}"
+                                     style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
+                                </a>
+                                <div>
+                                    <strong>${candidate.prenom} ${candidate.nom}</strong><br>
+                                    <small>${candidate.cycle_display} - ${candidate.specialite} ${candidate.niveau} - ${candidate.campus}</small><br>
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                                        <div style="width: 16px; height: 16px; border-radius: 50%; background: ${candidate.bureau_color}; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+                                        <small>"${candidate.slogan}"</small><br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="result-bar-container">
+                                <div class="result-bar" style="width: ${percentage}%">
+                                    ${candidate.votes} vote(s) (${percentage.toFixed(1)}%)
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    electionStatusMessage.appendChild(candidateDiv);
+                });
+            
                 return;
             }
             
@@ -2024,7 +2088,7 @@
                 electionStatusMessage.innerHTML = '<div class="message message-info">Aucun candidat n\'est enregistré pour le moment.</div>';
                 return;
             }
-
+            
             state.candidates.forEach(candidate => {
                 const candidateDiv = document.createElement('div');
                 candidateDiv.className = 'candidate-card';
@@ -2042,7 +2106,8 @@
                         <i class="fas fa-check"></i> Sélectionné
                     </div>
                     <a href="${candidate.photo_url}"><img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(candidate.nom)}" 
-                         alt="Photo de ${candidate.prenom} ${candidate.nom}">
+                        crossorigin="anonymous"
+                        alt="Photo de ${candidate.prenom} ${candidate.nom}">
                     </a>
                     <h4 style="color: #FFFFFF; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);padding: 4px;
                     background-color: rgba(0, 0, 0, 0.5);border-radius: 15px">${candidate.prenom} ${candidate.nom}</h4>
@@ -2191,7 +2256,8 @@
                 <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
                     <a href="${user.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
                         <img src="${user.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
-                         alt="Photo de ${user.prenom} ${user.nom}"
+                        crossorigin="anonymous"
+                        alt="Photo de ${user.prenom} ${user.nom}"
                          style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
                     </a>
                     <div>
@@ -2452,7 +2518,8 @@
                     <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
                         <a href="${candidate.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
                             <img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(candidate.prenom + ' ' + candidate.nom)}" 
-                             alt="Photo de ${candidate.prenom} ${candidate.nom}"
+                            crossorigin="anonymous"
+                            alt="Photo de ${candidate.prenom} ${candidate.nom}"
                              style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
                         </a>
                         <div style="flex-grow: 1;">
@@ -2620,16 +2687,37 @@
         stopElectionBtn.addEventListener('click', () => updateElectionStatus('closed'));
 
         function renderResults() {
-            resultsContainer.innerHTML = '';
+            console.log("viewId  ::::::  ")
+            const activeView = document.querySelector('.view.active');
+            //if (!activeView) return;
+            const viewId = activeView.id;
+            console.log("viewId  ::::::  ", viewId);
+
+            resultsContainer.innerHTML = 'msd mk;fkwe;k ndkn';
+            resultsContainerEtudiant.innerHTML = '';
+
+            console.log("state.electionStatus :",state.electionStatus, " viewId : ", viewId);
             if (state.electionStatus === 'pending') {
+                console.log("state.electionStatus === 'pending'", viewId);
                 resultsContainer.innerHTML = '<div class="message message-info">L\'élection n\'a pas encore commencé.</div>';
+                resultsContainerEtudiant.innerHTML = resultsContainer.innerHTML;
+                return;
+            }
+
+            console.log("viewId !=  'adminDashboardView' : ", viewId !=  'adminDashboardView');
+            if (state.electionStatus === 'active' && viewId != 'adminDashboardView') {
+                resultsContainerEtudiant.innerHTML = '<div class="message message-info">Les election sont encore en cours...</div>';
+                console.log("state.electionStatus === 'active' && viewId != 'adminDashboardView", viewId);
+                //return;
+            }
+            
+            console.log("state.candidates.length : ", state.candidates.length);
+            if (state.candidates.length === 0) {
+                resultsContainer.innerHTML = '<div class="message message-info">Aucun candidat enregistré.</div>';
+                resultsContainerEtudiant.innerHTML = resultsContainer.innerHTML;
                 return;
             }
             
-            if (state.candidates.length === 0) {
-                resultsContainer.innerHTML = '<div class="message message-info">Aucun candidat enregistré.</div>';
-                return;
-            }
 
             const totalVotes = state.candidates.reduce((sum, candidate) => sum + candidate.votes, 0);
             
@@ -2639,12 +2727,22 @@
                 candidateDiv.className = 'list-item';
                 candidateDiv.innerHTML = `
                     <div style="flex-grow: 1;">
-                        <a href="${candidate.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
-                            <img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
-                             alt="Photo de ${candidate.prenom} ${candidate.nom}"
-                             style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
-                        </a>
-                        <strong>${candidate.prenom} ${candidate.nom}</strong>
+                        <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+                            <a href="${candidate.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
+                                <img src="${candidate.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(candidate.prenom + ' ' + candidate.nom)}" 
+                                crossorigin="anonymous"
+                                alt="Photo de ${candidate.prenom} ${candidate.nom}"
+                                 style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
+                            </a>
+                            <div>
+                                <strong>${candidate.prenom} ${candidate.nom}</strong><br>
+                                <small>${candidate.cycle_display} - ${candidate.specialite} ${candidate.niveau} - ${candidate.campus}</small><br>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                                    <div style="width: 16px; height: 16px; border-radius: 50%; background: ${candidate.bureau_color}; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+                                    <small>"${candidate.slogan}"</small><br>
+                                </div>
+                            </div>
+                        </div>
                         <div class="result-bar-container">
                             <div class="result-bar" style="width: ${percentage}%">
                                 ${candidate.votes} vote(s) (${percentage.toFixed(1)}%)
@@ -2652,7 +2750,16 @@
                         </div>
                     </div>
                 `;
+                 console.log("Before resultsContainer.appendChild(candidateDiv);", state.candidates.length);
+
+                    
                 resultsContainer.appendChild(candidateDiv);
+                
+                if(state.electionStatus === 'closed'){
+                    const candidateDivClone = candidateDiv.cloneNode(true); // true pour cloner profondément
+                    resultsContainerEtudiant.appendChild(candidateDivClone);
+                }
+                
             });
         }
 
@@ -2679,7 +2786,8 @@
                     <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
                         <a href="${user.photo_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
                             <img src="${user.photo_url || 'https://api.dicebear.com/8.x/initials/svg?seed=' + encodeURIComponent(user.prenom + ' ' + user.nom)}" 
-                             alt="Photo de ${user.prenom} ${user.nom}"
+                            crossorigin="anonymous"
+                            alt="Photo de ${user.prenom} ${user.nom}"
                              style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
                         </a>
                         <div>
