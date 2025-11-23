@@ -304,6 +304,8 @@ def reset_election_view(request): # Redémarrage de l'élection
             # Réinitialiser le statut "a voté" pour tous les utilisateurs
             Profile.objects.all().update(has_voted=False)
             
+            Vote.objects.all().delete()
+            
             # Remettre l'élection en statut "pending"
             election = ElectionState.objects.first()
             election.status = 'pending'
