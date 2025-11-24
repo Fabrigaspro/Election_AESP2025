@@ -22,7 +22,8 @@ def get_specialites_by_cycle(cycle):
     specialites = {
         'bts': Profile.SPECIALITE_BTS,
         'hnd': Profile.SPECIALITE_HND,
-        'licence': Profile.SPECIALITE_LICENCE,
+        'lipro': Profile.SPECIALITE_LICENCEPRO,
+        'litech': Profile.SPECIALITE_LICENCETECH,
         'bachelor': Profile.SPECIALITE_BACHELOR,
         'master': Profile.SPECIALITE_MASTER,
         'ingenieur': Profile.SPECIALITE_INGENIEUR,
@@ -34,9 +35,13 @@ def get_niveaux_by_cycle(cycle):
     niveaux = {
         'bts': [1, 2],
         'hnd': [1, 2],
-        'licence': [3],
+
+        'lipro': [3],
+        'litech': [3],
         'bachelor': [3],
+
         'master': [4, 5],
+
         'ingenieur': [1, 2, 3, 4, 5],
     }
     return niveaux.get(cycle, [])
@@ -49,6 +54,7 @@ def get_cycle_options(request):
         return JsonResponse({'error': 'Cycle non spécifié'}, status=400)
     
     specialites = get_specialites_by_cycle(cycle)
+
     if cycle != 'ingenieur':
         niveaux = get_niveaux_by_cycle(cycle)
         

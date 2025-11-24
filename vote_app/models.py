@@ -26,7 +26,8 @@ class Profile(models.Model):
     CYCLE_CHOICES = [
         ('bts', 'BTS'),
         ('hnd', 'HND'),
-        ('licence', 'Licence'),
+        ('lipro', 'Licence Professionnelle'),
+        ('litech', 'Licence de Technologie'),
         ('bachelor', 'Bachelor of Technology'),
         ('master', 'Master'),
         ('ingenieur', 'Ingénieur'),
@@ -52,7 +53,7 @@ class Profile(models.Model):
         ('URBA', 'Urbanisme'),
     ]
 
-    SPECIALITE_LICENCE = [
+    SPECIALITE_LICENCEPRO = [
         ('ASR', 'Administration et Securites Reseaux'),
         ('BAT', 'Bâtiment'),
         ('GEII', 'Génie Electrique et Informatique Industrielle'),
@@ -63,8 +64,13 @@ class Profile(models.Model):
         ('TP', 'Travaux Publics'),
         ('URBA', 'Urbanisme'),
     ]
+    SPECIALITE_LICENCETECH = [
+        ('GEII', 'Génie Electrique et Informatique Industrielle'),
+        ('GCE', 'Génie Civil'),
+        ('GL', 'Génie Logiciel')
+    ]
 
-    SPECIALITE_MASTER = SPECIALITE_LICENCE
+    SPECIALITE_MASTER = SPECIALITE_LICENCEPRO
 
     SPECIALITE_HND = [
         ('BST', 'Building Science and Technology'),
@@ -86,11 +92,6 @@ class Profile(models.Model):
         ('EEE', 'Electrical and Electronic Engineering'),
         ('CE', 'Civil Engineering'),
     ]
-
-    SPECIALITE_BTS = [
-        
-    ]
-
 
     SPECIALITE_INGENIEUR = [
         ('Prépa', 'Classe Preparatoire'),
@@ -284,22 +285,6 @@ class Profile(models.Model):
     def get_fullname(self):
         return f'{self.user.first_name} {self.user.last_name}'
     
-    # Méthode pour obtenir les spécialités disponibles selon le cycle
-    def get_available_specialites(self):
-        if self.cycle == 'bts':
-            return self.SPECIALITE_BTS
-        elif self.cycle == 'hnd':
-            return self.SPECIALITE_HND
-        elif self.cycle == 'licence':
-            return self.SPECIALITE_LICENCE
-        elif self.cycle == 'bachelor':
-            return self.SPECIALITE_BACHELOR 
-        elif self.cycle == 'master':
-            return self.SPECIALITE_MASTER
-        elif self.cycle == 'ingenieur':
-            return self.SPECIALITE_INGENIEUR
-        return []
-
     def get_cycle_display(self):
         for code, name in self.CYCLE_CHOICES:
             if code == self.cycle:
@@ -312,7 +297,8 @@ class Profile(models.Model):
         specialites_dict = dict(
             self.SPECIALITE_BTS + 
             self.SPECIALITE_HND +
-            self.SPECIALITE_LICENCE + 
+            self.SPECIALITE_LICENCEPRO + 
+            self.SPECIALITE_LICENCETECH + 
             self.SPECIALITE_BACHELOR +
             self.SPECIALITE_MASTER + 
             self.SPECIALITE_INGENIEUR
@@ -340,7 +326,8 @@ class Candidate(models.Model):
     SPECIALITE_BTS = Profile.SPECIALITE_BTS
     SPECIALITE_HND = Profile.SPECIALITE_HND
 
-    SPECIALITE_LICENCE = Profile.SPECIALITE_LICENCE
+    SPECIALITE_LICENCEPRO = Profile.SPECIALITE_LICENCEPRO
+    SPECIALITE_LICENCETECH = Profile.SPECIALITE_LICENCETECH
     SPECIALITE_BACHELOR = Profile.SPECIALITE_BACHELOR
 
     SPECIALITE_MASTER = Profile.SPECIALITE_MASTER
@@ -503,16 +490,17 @@ class Candidate(models.Model):
 
     @property
     def specialite_display(self):
-        # Concaténation de toutes les listes pour la recherche
-        all_specs = (
+        specialites_dict = dict(
             self.SPECIALITE_BTS + 
             self.SPECIALITE_HND +
-            self.SPECIALITE_LICENCE + 
+            self.SPECIALITE_LICENCEPRO + 
+            self.SPECIALITE_LICENCETECH + 
             self.SPECIALITE_BACHELOR +
             self.SPECIALITE_MASTER + 
             self.SPECIALITE_INGENIEUR
         )
-        specialites_dict = dict(all_specs)
+        print(specialites_dict)
+        print(specialites_dict.get(self.specialite, self.specialite))
         return specialites_dict.get(self.specialite, self.specialite)
 
     @property
