@@ -535,6 +535,60 @@
             margin-bottom: 0.5rem;
         }
 
+        /* --- Bouton Vidéo Tutorielle --- */
+        .tutorial-btn {
+            position: static;
+            top: 15px;
+            right: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .tutorial-btn:hover {
+            background: var(--secondary-color);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .tutorial-btn i {
+            font-size: 1.2rem;
+        }
+
+        /* Tooltip pour le bouton tutoriel */
+        .tutorial-tooltip {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: var(--dark-gray);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .tutorial-btn:hover .tutorial-tooltip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
         /* Styles pour les boutons de contrôle d'élection */
         #electionControlButtons {
             display: flex;
@@ -1000,6 +1054,12 @@
                 <img src="{% static 'vote_app/images/IUGET.png' %}" alt="Logo AESP" class="logo">
             </div>
             <div id="loginFormContainer" class="form-container">
+                <!-- Bouton Vidéo Tutorielle -->
+                <button class="tutorial-btn" id="tutorialBtnLogin" onclick="openTutorialVideo()">
+                    <i class="fas fa-question-circle"></i>
+                    <div class="tutorial-tooltip">Voir la vidéo tutorielle</div>
+                </button>
+
                 <h2>Connexion</h2>
                 <form id="loginForm">
                     <div id="loginError" class="message message-error" style="display: none;"></div>
@@ -2822,6 +2882,131 @@
                 usersList.appendChild(userDiv);
             });
         }
+
+        // =================================================================
+        // FONCTION POUR OUVRIRE LA VIDÉO TUTORIELLE
+        // =================================================================
+        
+        function openTutorialVideo() {
+            // Lien réel de votre vidéo tutorielle
+            const tutorialVideoUrl = "https://res.cloudinary.com/dhwc5ibmo/video/upload/v1764067314/Tuto_inscription_a_AESP_VOTING_SYSTEM_tr45pj.mp4";
+            
+            // Créer une modale pour afficher la vidéo
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 12px;
+                    padding: 20px;
+                    max-width: 90%;
+                    max-height: 90%;
+                    width: 800px;
+                    position: relative;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                ">
+                    <button id="closeTutorialBtn" style="
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: var(--error-color);
+                        color: white;
+                        border: none;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        cursor: pointer;
+                        z-index: 10001;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    
+                    <h3 style="color: var(--primary-color); margin-bottom: 15px; text-align: center;">
+                        <i class="fas fa-graduation-cap"></i> Tutoriel d'utilisation
+                    </h3>
+                    
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px;">
+                        <iframe 
+                            src="${tutorialVideoUrl}" 
+                            crossorigin="anonymous"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    
+                    <div style="margin-top: 15px; text-align: center;">
+                        <p style="color: #666; font-size: 0.9rem;">
+                            <i class="fas fa-info-circle"></i> 
+                            Cette vidéo vous guide pas à pas dans l'utilisation de la plateforme de vote
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            document.body.style.overflow = 'hidden';
+            
+            // Ajouter l'écouteur d'événement pour fermer la modale
+            document.getElementById('closeTutorialBtn').addEventListener('click', function() {
+                modal.remove();
+                document.body.style.overflow = 'auto';
+            });
+            
+            // Fermer en cliquant en dehors de la modale
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        }
+        
+        // Fermer avec la touche Echap
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.querySelector('div[style*="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8);"]');
+                if (modal) {
+                    modal.remove();
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        });
+
+        // =================================================================
+        // ÉLÉMENTS DU DOM - AJOUTER LES ÉCOUTEURS POUR LES BOUTONS TUTORIEL
+        // =================================================================
+        
+        // Ajouter les écouteurs d'événements pour les boutons tutoriel
+        document.addEventListener('click', function(e) {
+        // Vérifier si le clic vient d'un bouton tutoriel
+        const tutorialBtn = e.target.closest('.tutorial-btn') || 
+                           e.target.closest('#tutorialBtnLogin') || 
+                           e.target.closest('#tutorialBtnRegister') ||
+                           (e.target.closest('button') && e.target.closest('button').textContent.includes('tutoriel'));
+        
+        if (tutorialBtn) {
+            e.preventDefault(); // Empêcher le comportement par défaut
+            e.stopPropagation(); // Empêcher la propagation
+            openTutorialVideo();
+        }
+    });
 
         // =================================================================
         // INITIALISATION
