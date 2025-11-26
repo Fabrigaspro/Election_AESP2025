@@ -151,7 +151,7 @@ def login_view(request):
                 
                 print("profile.has_active_session : ", profile.has_active_session)
                 # Vérifier s'il y a une session ACTIVE (non expirée)
-                if profile.has_active_session:
+                if profile.has_active_session and not profile.is_admin:
                     return JsonResponse({
                         'success': False,
                         'error': 'Compte déjà connecté sur un autre appareil. Déconnectez-vous d\'abord ou attendez que la session expire.'
@@ -250,7 +250,7 @@ def dashboard_data_view(request):
         candidate_data['specialite_display'] = candidate.specialite_display
         
         candidates.append(candidate_data)
-
+    candidates.reverse()  # Pour afficher les plus récents en premier
     # Pour l'admin, on renvoie aussi les listes d'utilisateurs
     pending_users = []
     all_users = []
