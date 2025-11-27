@@ -95,6 +95,7 @@ def user_to_dict(user):
         'cycle_display': user.profile.get_cycle_display(),
         'specialite': user.profile.specialite,
         'niveau': user.profile.niveau,
+        'telephone': user.profile.telephone,
         'photo_url': user.profile.photo.url if user.profile.photo else None,
         'recu_url': user.profile.recu.url if user.profile.recu else None,
         'status': user.profile.status,

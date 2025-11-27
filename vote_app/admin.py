@@ -10,7 +10,7 @@ admin.site.index_title = "Tableau de bord"
 
 @admin.register(Profile)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('matricule','get_fullname','role', 'status', 'campus', 'cycle', 'specialite', 'niveau', 'is_connected', 'last_activity', 'is_actually_connected', 'has_active_session', 'session_expires', 'session_token', 'has_voted', 'is_admin', 'photo', 'recu')
+    list_display = ('matricule','get_fullname','telephone', 'role', 'status', 'campus', 'cycle', 'specialite', 'niveau', 'is_connected', 'last_activity', 'is_actually_connected', 'has_active_session', 'session_expires', 'session_token', 'has_voted', 'is_admin', 'photo', 'recu')
     list_filter = ('role', 'status', 'cycle', 'niveau')
     search_fields = ('cycle', 'niveau',)
 

@@ -2337,7 +2337,7 @@
                          style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
                     </a>
                     <div>
-                        <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
+                        <strong>${user.prenom} ${user.nom}</strong> (${user.matricule}) - ${user.telephone}<br>
                         <strong>${user.cycle}-${user.specialite} ${user.niveau} - ${user.campus}</strong><br>
                         <a href="${user.recu_url}" target="_blank" style="color: var(--secondary-color); text-decoration: none;">
                             <i class="fas fa-file-invoice"></i> Voir le reçu
@@ -2867,7 +2867,7 @@
                              style="width: 80px; height: 80px; border-radius: 30%; object-fit: cover; border: 2px solid var(--primary-color);">
                         </a>
                         <div>
-                            <strong>${user.prenom} ${user.nom}</strong> (${user.matricule})<br>
+                            <strong>${user.prenom} ${user.nom}</strong> (${user.matricule}) - ${user.telephone}<br>
                             <strong>${user.cycle_display} - ${user.specialite} ${user.niveau} - ${user.campus}</strong><br>
                             <span class="status-${user.status}">${user.status === 'pending' ? 'En attente' : 'Validée'}</span>
                             ${user.status === 'pending' ? ' - ❌ Ne peut pas voter': user.has_voted ? ' - ✅ A voté' : ' - ❌ N\'a pas voté'}
