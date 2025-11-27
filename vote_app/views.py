@@ -128,6 +128,7 @@ def register_view(request):
             cycle=data['cycle'],
             specialite=data['specialite'],
             niveau=data['niveau'],
+            telephone=data.get('telephone', ''),
             photo=request.FILES.get('photo'),
             recu=request.FILES.get('recu')
         )

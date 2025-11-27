@@ -1089,7 +1089,7 @@
                         <label for="registerPrenom">Prénom</label>
                         <input type="text" id="registerPrenom" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="color: red;">
                         <label for="registerMatricule">Matricule scolaire</label>
                         <input type="text" id="registerMatricule" required>
                     </div>
@@ -1124,6 +1124,10 @@
                             <option value="" disabled selected>Sélectionnez d'abord le cycle</option>
                         </select>
                     </div>
+                    <div class="form-group" style="color: red;">
+                        <label for="registerPhone">Téléphone (Whatsapp)</label>
+                        <input type="text" id="registerPhone" required>
+                    </div>
                     <div class="form-group">
                         <label for="registerPassword">Mot de passe</label>
                         <input type="password" id="registerPassword" required>
@@ -1137,8 +1141,8 @@
                         <input type="file" id="registerPhoto" accept="image/*" required>
                         <img id="photoPreview" class="file-preview">
                     </div>
-                    <div class="form-group">
-                        <label for="registerRecu">Photo du reçu de paiement des frais d'inscription</label>
+                    <div class="form-group" style="color: red;">
+                        <label for="registerRecu">Photo du reçu de paiement des frais d'inscription à l'AESP (1000 Fcfa)</label>
                         <input type="file" id="registerRecu" accept="image/*" required>
                         <img id="recuPreview" class="file-preview">
                     </div>
@@ -1949,6 +1953,7 @@
             formData.append('prenom', document.getElementById('registerPrenom').value);
             formData.append('matricule', document.getElementById('registerMatricule').value);
             formData.append('campus', document.getElementById('registerCampus').value);
+            formData.append('telephone', document.getElementById('registerPhone').value);
             formData.append('cycle', document.getElementById('registerCycle').value);
             formData.append('specialite', document.getElementById('registerSpecialite').value);
             formData.append('niveau', document.getElementById('registerNiveau').value);

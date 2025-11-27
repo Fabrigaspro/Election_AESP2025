@@ -110,6 +110,7 @@ class Profile(models.Model):
     cycle = models.CharField(max_length=100, choices=CYCLE_CHOICES, default='bts')
     specialite = models.CharField(max_length=100, blank=True, null=True)
     niveau = models.IntegerField(blank=True)
+    telephone = models.CharField(max_length=15, blank=True)
     photo = CloudinaryField('image', folder='photos/')
     recu = CloudinaryField('image', folder='recus/')
     
