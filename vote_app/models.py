@@ -51,6 +51,7 @@ class Profile(models.Model):
         ('TELECOM', 'Télécommunications'),
         ('TP', 'Travaux Publics'),
         ('URBA', 'Urbanisme'),
+        
     ]
 
     SPECIALITE_LICENCEPRO = [
@@ -79,7 +80,7 @@ class Profile(models.Model):
         ('CGWD', 'Computer Graphic and web Design'),
         ('DBM', 'Database Management'),
         ('EPS', 'Electrical Power Systems'),
-        ('ET', 'Electrotechnics'),
+        ('ECT', 'Electrotechnics'),
         ('NWSE', 'Networks and Security'),
         ('SWE', 'Software Engineering'),
         ('TELECOM', 'Telecommunications'),
