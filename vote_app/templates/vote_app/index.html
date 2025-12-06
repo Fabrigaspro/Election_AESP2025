@@ -1835,13 +1835,26 @@
 
         // =================================================================
         // GESTION DE L'AUTHENTIFICATION
-        // =================================================================
-
+        // =================================================================        
+        // Fonction pour réinitialiser tous les toggles
+        function resetPasswordToggles() {
+            document.querySelectorAll('.password-toggle').forEach(icon => {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            });
+            
+            document.querySelectorAll('input[type="text"][id*="Password"], input[type="text"][id*="password"]').forEach(input => {
+                if (input.id && (input.id.includes('Password') || input.id.includes('password'))) {
+                    input.type = 'password';
+                }
+            });
+        }
+        
         showRegister.addEventListener('click', () => {
             loginFormContainer.style.display = 'none';
             registerFormContainer.style.display = 'block';
             hideMessage(loginError);
-            setupPasswordToggles();
+            resetPasswordToggles();
         });
 
         showLogin.addEventListener('click', () => {
@@ -1849,7 +1862,7 @@
             loginFormContainer.style.display = 'block';
             hideMessage(registerError);
             hideMessage(registerSuccess);
-            setupPasswordToggles();
+            resetPasswordToggles();
         });
 
         registerPhoto.addEventListener('change', () => previewImage(registerPhoto, photoPreview));
@@ -2007,7 +2020,7 @@
                 recuPreview.style.display = 'none';
                 hideMessage(registerError);
                 hideMessage(registerSuccess);
-        
+                resetPasswordToggles();        
             } catch (error) {
                 showConfirmation('error', error.message);
             } finally {
@@ -2039,6 +2052,7 @@
                 studentWelcomeMsg.textContent = `Bienvenue, ${state.currentUser.prenom} ${state.currentUser.nom}`;
                 
                 checkSession();
+                resetPasswordToggles();
             } catch (error) {
                 displayMessage(loginError, error.message);
             } finally {
@@ -2438,25 +2452,6 @@
         });
         
         // Formulaire d'ajout de candidat amélioré
-        // Fonction pour gérer l'affichage/masquage des mots de passe
-        function setupPasswordToggles() {
-            document.querySelectorAll('.password-toggle').forEach(icon => {
-                icon.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-target');
-                    const passwordInput = document.getElementById(targetId);
-                    
-                    if (passwordInput.type === 'password') {
-                        passwordInput.type = 'text';
-                        this.classList.remove('fa-eye');
-                        this.classList.add('fa-eye-slash');
-                    } else {
-                        passwordInput.type = 'password';
-                        this.classList.remove('fa-eye-slash');
-                        this.classList.add('fa-eye');
-                    }
-                });
-            });
-        }
         // fonctions pour gérer les dépendances entre cycle et specialité niveau
         async function updateSpecialitesCandidatesByCycle(cycle) {
             const specialiteSelect = document.getElementById('candidateSpecialite');
@@ -3148,6 +3143,33 @@
             e.stopPropagation(); // Empêcher la propagation
             openTutorialVideo();
         }
+
+        // Vérifier si le clic est sur une icône password-toggle
+        if (e.target.classList.contains('password-toggle') || 
+            e.target.parentElement.classList.contains('password-toggle')) {
+            
+            const icon = e.target.classList.contains('password-toggle') ? 
+                         e.target : e.target.parentElement;
+            
+            const targetId = icon.getAttribute('data-target');
+            const passwordInput = document.getElementById(targetId);
+            
+            if (!passwordInput) return;
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+            
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
     });
 
         // =================================================================
@@ -3155,7 +3177,7 @@
         // =================================================================
         console.log('🚀 Démarrage de l application');
         checkSession();
-        setupPasswordToggles();
+        resetPasswordToggles();
 
     });
     </script>
