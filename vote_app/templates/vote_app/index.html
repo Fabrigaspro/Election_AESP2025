@@ -137,6 +137,29 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Styles pour les icônes de mot de passe */
+        .password-input-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            z-index: 10;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+        
+        .password-input-container input {
+            padding-right: 40px !important;
+        }
         
         /* Désactiver les boutons pendant le loading */
         .btn:disabled {
@@ -1070,6 +1093,7 @@
                     <div class="form-group">
                         <label for="loginPassword">Mot de passe</label>
                         <input type="password" id="loginPassword" required>
+                        <i class="fas fa-eye password-toggle" data-target="loginPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666;"></i>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
                 </form>
@@ -1131,10 +1155,12 @@
                     <div class="form-group">
                         <label for="registerPassword">Mot de passe</label>
                         <input type="password" id="registerPassword" required>
+                        <i class="fas fa-eye password-toggle" data-target="registerPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666;"></i>
                     </div>
                     <div class="form-group">
                         <label for="registerConfirmPassword">Confirmer le mot de passe</label>
                         <input type="password" id="registerConfirmPassword" required>
+                        <i class="fas fa-eye password-toggle" data-target="registerConfirmPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666;"></i>
                     </div>
                     <div class="form-group">
                         <label for="registerPhoto">Photo de profil</label>
@@ -1809,6 +1835,7 @@
             loginFormContainer.style.display = 'none';
             registerFormContainer.style.display = 'block';
             hideMessage(loginError);
+            setupPasswordToggles();
         });
 
         showLogin.addEventListener('click', () => {
@@ -1816,6 +1843,7 @@
             loginFormContainer.style.display = 'block';
             hideMessage(registerError);
             hideMessage(registerSuccess);
+            setupPasswordToggles();
         });
 
         registerPhoto.addEventListener('change', () => previewImage(registerPhoto, photoPreview));
@@ -2404,6 +2432,25 @@
         });
         
         // Formulaire d'ajout de candidat amélioré
+        // Fonction pour gérer l'affichage/masquage des mots de passe
+        function setupPasswordToggles() {
+            document.querySelectorAll('.password-toggle').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const passwordInput = document.getElementById(targetId);
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    }
+                });
+            });
+        }
         // fonctions pour gérer les dépendances entre cycle et specialité niveau
         async function updateSpecialitesCandidatesByCycle(cycle) {
             const specialiteSelect = document.getElementById('candidateSpecialite');
@@ -3102,6 +3149,7 @@
         // =================================================================
         console.log('🚀 Démarrage de l application');
         checkSession();
+        setupPasswordToggles();
 
     });
     </script>
