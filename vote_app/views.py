@@ -123,24 +123,21 @@ def register_view(request):
                 last_name=data['prenom']
             )
             
-            try:
-                # Crée le profil associé
-                Profile.objects.create(
-                    user=user,
-                    campus=data['campus'],
-                    cycle=data['cycle'],
-                    specialite=data['specialite'],
-                    niveau=data['niveau'],
-                    telephone=data.get('telephone', ''),
-                    photo=request.FILES.get('photo'),
-                    recu=request.FILES.get('recu')
-                )
-            except Exception as e:
-                user.delete()  # Supprime l'utilisateur si le profil échoue
-                return JsonResponse({'error': 'Problème lors de la création du profil. Connexion instable'}, status=400)
-            
+            # Crée le profil associé
+            Profile.objects.create(
+                user=user,
+                campus=data['campus'],
+                cycle=data['cycle'],
+                specialite=data['specialite'],
+                niveau=data['niveau'],
+                telephone=data.get('telephone', ''),
+                photo=request.FILES.get('photo'),
+                recu=request.FILES.get('recu')
+            )
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            user.delete()  # Supprime l'utilisateur si le profil échoue
+            return JsonResponse({'error': 'Problème lors de la création du profil. Connexion instable'}, status=400)
+            
         
         return JsonResponse({'success': 'Inscription réussie ! Votre compte est en attente de validation.'})
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
