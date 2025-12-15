@@ -137,7 +137,7 @@ class Profile(models.Model):
     def update_activity(self, request=None):
         """Met à jour l'activité et prolonge la session"""
         self.last_activity = timezone.now()
-        self.session_expires = timezone.now() + timedelta(minutes=self.TIMEOUT)  # Reset à 10 min
+        self.session_expires = timezone.now() + timedelta(minutes=self.TIMEOUT)  # Reset à 3 min
         if self.is_admin == 'admin':
             self.session_expires = timezone.now() + timedelta(hours= 24)  # Reset à 24h
 
