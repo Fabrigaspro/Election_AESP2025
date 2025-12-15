@@ -15,6 +15,7 @@ from django.shortcuts import render
 from .models import Profile, Candidate, ElectionState, Vote
 from django.utils import timezone
 from datetime import timedelta
+from django.db import transaction, IntegrityError
 
 # Méthodes utilitaires pour les choix dynamiques
 def get_specialites_by_cycle(cycle):
@@ -111,34 +112,45 @@ def user_to_dict(user):
 def register_view(request):
     if request.method == 'POST':
         data = request.POST
-        if User.objects.filter(username=data['matricule']).exists():
+        matricule = data.get('matricule')
+        if not matricule:
+            return JsonResponse({'error': 'Matricule manquant.'}, status=400)
+
+        if User.objects.filter(username=matricule).exists():
             return JsonResponse({'error': 'Ce matricule est déjà utilisé.'}, status=400)
 
         try:
-            # Crée l'utilisateur Django
-            user = User.objects.create_user(
-                username=data['matricule'],
-                password=data['password'],
-                first_name=data['nom'],
-                last_name=data['prenom']
-            )
-            
-            # Crée le profil associé
-            Profile.objects.create(
-                user=user,
-                campus=data['campus'],
-                cycle=data['cycle'],
-                specialite=data['specialite'],
-                niveau=data['niveau'],
-                telephone=data.get('telephone', ''),
-                photo=request.FILES.get('photo'),
-                recu=request.FILES.get('recu')
-            )
+            with transaction.atomic():
+                # Crée l'utilisateur Django
+                user = User.objects.create_user(
+                    username=matricule,
+                    password=data.get('password'),
+                    first_name=data.get('nom', ''),
+                    last_name=data.get('prenom', '')
+                )
+
+                # Crée le profil associé
+                Profile.objects.create(
+                    user=user,
+                    campus=data.get('campus', ''),
+                    cycle=data.get('cycle', ''),
+                    specialite=data.get('specialite', ''),
+                    niveau=data.get('niveau', ''),
+                    telephone=data.get('telephone', ''),
+                    photo=request.FILES.get('photo'),
+                    recu=request.FILES.get('recu')
+                )
+
+        except IntegrityError:
+            return JsonResponse({'error': 'Erreur base de données lors de la création du compte.'}, status=500)
         except Exception as e:
-            user.delete()  # Supprime l'utilisateur si le profil échoue
+            # tentative de suppression au cas où un enregistrement partiel aurait persisté
+            try:
+                user.delete()
+            except Exception:
+                pass
             return JsonResponse({'error': 'Problème lors de la création du profil. Connexion instable'}, status=400)
-            
-        
+
         return JsonResponse({'success': 'Inscription réussie ! Votre compte est en attente de validation.'})
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
