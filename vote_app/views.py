@@ -128,8 +128,8 @@ def validate_image_upload(file_obj, allowed_exts=None, max_size_mb=10):
     # Vérifier le content_type s'il existe
     content_type = getattr(file_obj, 'content_type', '') or ''
     if content_type:
-        if not content_type.startswith('image/') and 'heic' not in content_type and 'heif' not in content_type:
-            return False, 'Type de fichier non autorisé.'
+        if not content_type.startswith('image/') and not any(ext in content_type for ext in allowed_exts):
+            return False, 'Type de fichier non autorisé (seuls jpg, jpeg et png sont autorisés).'
 
     # Vérifier l'extension
     name = getattr(file_obj, 'name', '') or ''
