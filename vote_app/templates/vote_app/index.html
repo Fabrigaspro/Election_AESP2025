@@ -2899,6 +2899,8 @@
             countDiv.innerHTML = `
                 <div><h4>Total des inscrits : ${state.allUsers.length-state.pendingUsers.length}</h4></div>
                 <div><h4>Total en attente : ${state.pendingUsers.length}</h4></div>
+                <div><h4>Total des votes : ${state.allUsers.filter(user => user.has_voted).length}</h4></div>
+                
             `;
             usersList.appendChild(countDiv);
             
