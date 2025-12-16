@@ -104,6 +104,45 @@ def user_to_dict(user):
         'is_admin': user.profile.is_admin,
     }
 
+
+def validate_image_upload(file_obj, allowed_exts=None, max_size_mb=10):
+    """Valide un fichier uploadé comme image.
+    - allowed_exts: liste d'extensions sans point, ex: ['jpg','png']
+    - max_size_mb: taille maximale autorisée en mégaoctets
+    Retourne (True, None) si OK, sinon (False, message)
+    """
+    if not file_obj:
+        return True, None
+
+    if allowed_exts is None:
+        allowed_exts = ['jpg', 'jpeg', 'png']
+
+    # Vérifier la taille
+    try:
+        size = getattr(file_obj, 'size', None)
+        if size is not None and size > max_size_mb * 1024 * 1024:
+            return False, f'Fichier trop volumineux (>{max_size_mb} MB).'
+    except Exception:
+        pass
+
+    # Vérifier le content_type s'il existe
+    content_type = getattr(file_obj, 'content_type', '') or ''
+    if content_type:
+        if not content_type.startswith('image/') and 'heic' not in content_type and 'heif' not in content_type:
+            return False, 'Type de fichier non autorisé.'
+
+    # Vérifier l'extension
+    name = getattr(file_obj, 'name', '') or ''
+    if '.' in name:
+        ext = name.rsplit('.', 1)[1].lower()
+        if ext not in allowed_exts:
+            return False, f'Extension non autorisée: .{ext}.'
+    else:
+        # Pas d'extension fournie
+        return False, 'Nom de fichier sans extension.'
+
+    return True, None
+
 # ===============================================
 # VUES API  electionStatusMessage
 # ===============================================
@@ -118,6 +157,18 @@ def register_view(request):
 
         if User.objects.filter(username=matricule).exists():
             return JsonResponse({'error': 'Ce matricule est déjà utilisé.'}, status=400)
+
+        # Valider les fichiers uploadés (photo, recu)
+        photo_file = request.FILES.get('photo')
+        recu_file = request.FILES.get('recu')
+
+        ok, msg = validate_image_upload(photo_file)
+        if not ok:
+            return JsonResponse({'error': f'Photo invalide: {msg}'}, status=400)
+
+        ok, msg = validate_image_upload(recu_file)
+        if not ok:
+            return JsonResponse({'error': f'Reçu invalide: {msg}'}, status=400)
 
         try:
             with transaction.atomic():
@@ -137,8 +188,8 @@ def register_view(request):
                     specialite=data.get('specialite', ''),
                     niveau=data.get('niveau', ''),
                     telephone=data.get('telephone', ''),
-                    photo=request.FILES.get('photo'),
-                    recu=request.FILES.get('recu')
+                    photo=photo_file,
+                    recu=recu_file
                 )
 
         except IntegrityError:
